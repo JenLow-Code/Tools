@@ -1,48 +1,52 @@
 # JenLow Tools — Frontend prototype
 
-Desktop-first, independent JenLow Tools web app. React + Vite; professional blue visual identity.
+**Visual direction: R'HiFi / premium audio** — adapted to JenLow Tools' blue identity.
+Desktop-first independent application. Thin horizontal navigation, expansive photographic hero,
+large intentional typography, minimal cards and borders, and a professional equipment inventory.
+The 2D example room and all product catalogue content are illustrative prototypes.
 
-## Start locally
-
-From the repository root:
+## Start
 
     cd frontend
     npm install
     npm run dev
 
-Open the local URL printed by Vite. For a production build, run npm run build.
+Build check:
 
-## What you can test
+    npm run build
 
-- First-visit three-step onboarding with "I'll do this later" on every step.
-- A lightweight **sample 2D home studio** with clickable Desk / Rack / Storage / Cellar locations.
-- Adding owned equipment by model or manually, with condition, serial number, location and quantity. A quantity of three creates **three independent physical inventory items**.
-- Search / filter inventory, view item details, change item location/condition/status, remove records.
-- Add new locations and export inventory to CSV.
-- Explore: sample catalogue, wishlist, high-level comparisons, and placeholder editorial guides.
-- Marketplace: professional list, offers + requests together, filters by transaction, category, city, price, availability; create sale/rental/free-loan drafts linked to an owned inventory item; create equipment-request drafts.
+## Interactive features
 
-## Important current limits
+- Skippable onboarding with sample studio.
+- 2D sample home-studio illustration with clickable Desk, Rack, Storage, Cellar.
+- Individual equipment records, including distinct records for multiple identical microphones.
+- Add, find, filter, relocate, update and remove equipment.
+- Add locations and export a CSV inventory.
+- Explore: sample products, saved products, elementary comparison and editorial layout.
+- Marketplace: one combined offers-and-requests list with compact professional filters.
+- Sell/rent/lend offer drafts only for individually registered owned equipment.
+- Local equipment request drafts.
 
-**This is a frontend-only product/design prototype.**
+## Limitations
 
-- Data is persisted in the current browser's localStorage. It is **not** saved to a server, synchronized between devices or shared with other users.
-- Every marketplace offer is a **draft**, never a real public listing. No purchases, payments, insurance, reservations, chat, identity or ownership verification.
-- Four sample marketplace entries (including two marked as Network previews) are **fictional**, not current availability or real Network requests.
-- Equipment catalogue, recommendations, comparison attributes and news are **illustrative starter data**, not a verified live feed.
-- There are **no dreams inside Tools**. The Network link only opens Network's homepage; shared identity and deep links are not integrated yet.
-- The virtual room uses a purpose-built 2D SVG illustration, not a real photograph, WebGL scene or technical room plan.
-- The private inventory record is a self-declaration, **not evidence of ownership**.
-- Do not enter sensitive personal data into this prototype; browser storage is not a secure production database.
+Frontend-only, with localStorage in the browser. **No backend, no public listings, no actual
+Network requests, no bookings, insurance, payments, identity verification, notifications
+or multi-device synchronization.** Sample marketplace entries and sample news are explicitly
+fictional. Current product data and comparisons are illustrative rather than verified.
+The virtual studio room is an SVG illustration; no custom photo, 3D engine or real
+acoustic simulation is involved. The studio hero uses a third-party photographic
+background that requires an internet connection and is intended as a design placeholder.
 
-## Next product decisions to test
+The workspace stays independent from JenLow Network; no dreams are rendered inside Tools.
+All ownership records are user-declared and private. Marketplace drafts do not create
+live listings.
 
-1. How many onboarding questions are actually useful?
-2. What is the fastest add-equipment flow (manual entry, model selection, scanning)?
-3. How do we represent nested racks, cabinets and storage locations?
-4. What fields are required when listing an owned item?
-5. Do combined offers + requests make the marketplace more valuable in its first months?
+## Design notes
 
-## Architecture
-
-The prototype is self-contained in the frontend folder. It does not alter JenLow Network or require any backend. Network and Tools remain separate products with independent core experiences.
+- Use the R'HiFi high-end audiovisual art direction: spacious, restrained,
+  image-first, sophisticated typography, light/graphite surfaces, subtle blue details.
+- The main landing point should feel like a premium audio brand with a useful
+  personal studio, not a conventional SaaS dashboard.
+- Keep the marketplace compact and professional.
+- Do not make visual navigation, photography or 3D mandatory for inventory management.
+- If a future redesign changes visuals, do not remove user-facing workflows.

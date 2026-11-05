@@ -188,28 +188,46 @@ function App() {
     <span className="row-location"><MapPin size={13}/>{item.location}</span><span className={"status-pill "+(item.status==="Available"?"good":"")}>{item.status}</span><ChevronRight className="row-chevron" size={17}/>
   </button>;
   return <div className="app-shell">
-    <aside className={"sidebar"+(menuOpen?" open":"")}>
-      <div className="sidebar-brand"><span className="brand-icon"><AudioLines size={24}/></span><span className="brand-type">jenlow<span>tools.</span></span></div>
-      <div className="sidebar-caption">WORKSPACE</div>
-      <nav className="sidebar-nav" aria-label="Main navigation">
-        {[{key:"studio",icon:Home,label:"My Studio"},{key:"explore",icon:Compass,label:"Explore"},{key:"market",icon:ShoppingBag,label:"Marketplace"}].map(n=><button key={n.key} className={"nav-link"+(page===n.key?" current":"")} onClick={()=>{setPage(n.key);setMenuOpen(false);}}><n.icon size={19}/>{n.label}{page===n.key&&<span className="nav-current-dot"/>}</button>)}
-      </nav>
-      <div className="sidebar-caption with-space">MY LOCATIONS</div>
-      <div className="sidebar-locations">{store.locations.map(loc=><button key={loc} className={"location-link"+(page==="studio"&&activeLocation===loc?" selected":"")} onClick={()=>{setPage("studio");setActiveLocation(loc);setStudioTab("inventory");setMenuOpen(false);}}><span className="location-indicator"/>{loc}<span>{activeItems.filter(x=>x.location===loc).length}</span></button>)}</div>
-      <button className="sidebar-add" onClick={()=>setModal({type:"location"})}><Plus size={15}/> New location</button>
-      <div className="sidebar-spacer"/>
-      <div className="sidebar-note"><span className="note-orb"><ShieldCheck size={17}/></span><div><strong>Private by default</strong><p>Your inventory is visible only to you in this prototype.</p></div></div>
-      <div className="sidebar-bottom"><a href="https://network.jenlow.net/" target="_blank" rel="noreferrer"><LayoutGrid size={16}/> JenLow apps <ExternalLink size={13}/></a><div className="sidebar-version">TOOLS / FRONTEND PREVIEW 0.1</div></div>
-    </aside>
-    {menuOpen&&<button className="mobile-scrim" aria-label="Close menu" onClick={()=>setMenuOpen(false)}/>}
     <div className="app-main">
-      <header className="topbar"><button className="icon-button mobile-menu" aria-label="Open menu" onClick={()=>setMenuOpen(!menuOpen)}><Menu size={21}/></button><div className="breadcrumbs"><span>JenLow Tools</span><ChevronRight size={14}/><strong>{page==="studio"?"My Studio":page==="explore"?"Explore":"Marketplace"}</strong></div><div className="top-actions"><span className="top-prototype">INTERACTIVE PROTOTYPE</span><button className="icon-button" aria-label="Notifications" onClick={()=>notify("Notifications will connect to a backend in a later phase.")}><Bell size={19}/></button><button className="avatar" aria-label="Account demo" onClick={()=>notify("Account management is not connected yet.")}>JL</button></div></header>
+      <header className="topbar">
+        <a className="premium-logo" href="#" onClick={e=>{e.preventDefault();setPage("studio");}} aria-label="JenLow Tools Home"><span>jenlow</span><b>tools<span className="logo-stop">.</span></b></a>
+        <nav className="premium-nav" aria-label="Tools navigation">
+          {[{key:"studio",label:"My Studio"},{key:"explore",label:"Explore"},{key:"market",label:"Marketplace"}].map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>setPage(n.key)}>{n.label}</button>)}
+        </nav>
+        <div className="premium-header-actions">
+          <button className="premium-icon" title="Add equipment" onClick={()=>openAdd()} aria-label="Add equipment"><Plus size={19}/></button>
+          <button className="premium-icon" title="Notifications" onClick={()=>notify("Notifications need a backend connection.")} aria-label="Notifications"><Bell size={18}/></button>
+          <button className="premium-avatar" onClick={()=>notify("Account management is not connected yet.")} title="Account">JL</button>
+          <a className="ecosystem-link" href="https://jenlow.net" target="_blank" rel="noreferrer" title="JenLow ecosystem"><LayoutGrid size={17}/></a>
+        </div>
+      </header>
       <main className="main-content">
         {page==="studio"&&<div className="page-studio">
-          <div className="page-heading"><div><span className="overline">MY WORKSPACE / HOME STUDIO</span><h1>{store.studioName}</h1><p>Everything you own, where it belongs.</p></div><div className="heading-buttons"><button className="secondary-button" onClick={exportCSV}><Download size={16}/> Export inventory</button><button className="primary-button" onClick={()=>openAdd()}><Plus size={17}/> Add equipment</button></div></div>
-          <div className="stats-grid"><div className="stat-card"><div className="stat-label"><Boxes size={17}/> TOTAL EQUIPMENT</div><strong>{store.items.length}</strong><span>Individually tracked items</span></div><div className="stat-card"><div className="stat-label"><LayoutGrid size={17}/> LOCATIONS</div><strong>{store.locations.length}</strong><span>Organized spaces</span></div><div className="stat-card"><div className="stat-label"><CheckCircle2 size={17}/> AVAILABLE</div><strong>{activeItems.filter(x=>x.status==="Available").length}</strong><span>Ready to use or offer</span></div></div>
+          <section className="premium-studio-hero">
+            <div className="hero-photography" aria-hidden="true"/>
+            <div className="hero-shade" aria-hidden="true"/>
+            <div className="hero-content">
+              <div className="hero-topline"><span className="hero-kicker">JENLOW TOOLS / YOUR WORKSPACE</span><span className="hero-topline-right"><span className="hero-indicator"/> PRIVATE STUDIO</span></div>
+              <div className="hero-center">
+                <span className="hero-pretitle">WELCOME TO YOUR SPACE</span>
+                <h1>Everything you need.<br/><em>In its place.</em></h1>
+                <p>One space for the gear you own, the equipment you need and everything you're building.</p>
+                <div className="hero-buttons">
+                  <button className="hero-primary" onClick={()=>openAdd()}>Add equipment <ArrowUpRight size={19}/></button>
+                  <button className="hero-secondary" onClick={()=>{setPage("explore");setExploreTab("recommended");}}>Explore gear <ArrowRight size={18}/></button>
+                </div>
+              </div>
+              <div className="hero-bottomline"><span>STUDIO 01 <i/> {store.studioName}</span><span>SCROLL TO EXPLORE <ArrowDownRight size={16}/></span></div>
+            </div>
+          </section>
+          <div className="premium-workspace-heading">
+            <div><span className="premium-small-caps">01 / YOUR STUDIO</span><h2>{store.studioName}</h2><p>Your workspace, illustrated. Organize it your way.</p></div>
+            <div className="heading-buttons"><button className="secondary-button" onClick={exportCSV}><Download size={16}/> Export</button><button className="primary-button" onClick={()=>openAdd()}><Plus size={17}/> Add equipment</button></div>
+          </div>
           <div className="section-title-row"><div><h2>Your workspace</h2><p>Select a location to see what's there.</p></div><span className="subtle-label"><span className="blue-dot"/> 2D SAMPLE STUDIO</span></div>
           <Scene items={store.items} onSelect={l=>{setActiveLocation(l);setStudioTab("inventory");}} location={activeLocation} onAdd={()=>openAdd()}/>
+          <div className="premium-room-caption"><span>INTERACTIVE SAMPLE ROOM</span><span>SELECT A DESK, RACK OR STORAGE AREA TO FILTER YOUR EQUIPMENT</span></div>
+          <div className="stats-grid"><div className="stat-card"><div className="stat-label"><Boxes size={17}/> TOTAL EQUIPMENT</div><strong>{store.items.length}</strong><span>Individually tracked items</span></div><div className="stat-card"><div className="stat-label"><LayoutGrid size={17}/> LOCATIONS</div><strong>{store.locations.length}</strong><span>Organized spaces</span></div><div className="stat-card"><div className="stat-label"><CheckCircle2 size={17}/> AVAILABLE</div><strong>{activeItems.filter(x=>x.status==="Available").length}</strong><span>Ready to use or offer</span></div></div>
           <div className="section-title-row inventory-heading"><div><h2>Equipment inventory</h2><p>Each physical item is tracked separately.</p></div><div className="segmented"><button className={studioTab==="overview"?"active":""} onClick={()=>{setStudioTab("overview");setActiveLocation("All locations");}}>All items</button><button className={studioTab==="inventory"?"active":""} onClick={()=>setStudioTab("inventory")}>By location</button></div></div>
           <div className="panel inventory-panel"><div className="inventory-toolbar"><div className="search-input"><Search size={17}/><input placeholder="Search your equipment..." value={itemSearch} onChange={e=>setItemSearch(e.target.value)}/></div><select value={activeLocation} onChange={e=>setActiveLocation(e.target.value)}><option>All locations</option>{store.locations.map(l=><option key={l}>{l}</option>)}</select></div>
             {inventory.length>0?<div className="inventory-list">{inventory.map(renderItem)}</div>:<div className="empty-state"><div className="empty-icon"><Package size={26}/></div><h3>{activeItems.length?"No matching equipment":"Your studio starts here."}</h3><p>{activeItems.length?"Try a different search or location.":"Add your first microphone, instrument or interface. You'll see it in the inventory and its chosen location."}</p><button className="primary-button" onClick={()=>openAdd()}><Plus size={16}/> Add equipment</button></div>}
@@ -217,8 +235,12 @@ function App() {
           <div className="studio-bottom"><div className="small-feature"><span><Sparkles size={19}/></span><div><strong>Explore your next upgrade</strong><p>Find equipment suggestions using your actual setup as context.</p><button onClick={()=>{setPage("explore");setExploreTab("recommended");}}>Explore equipment <ArrowRight size={15}/></button></div></div><div className="small-feature"><span><ShoppingBag size={19}/></span><div><strong>Make the most of your gear</strong><p>List an inventory item for sale, rent or free lending.</p><button onClick={()=>activeItems.length?openOffer():openAdd()}>Create an offer <ArrowRight size={15}/></button></div></div></div>
         </div>}
         {page==="explore"&&<div className="page-explore">
-          <div className="page-heading"><div><span className="overline">EXPLORE / EQUIPMENT INTELLIGENCE</span><h1>Discover what fits.</h1><p>Research equipment, compare your options and keep learning.</p></div></div>
-          <div className="explore-hero"><div><span className="overline pale">BETTER CHOICES START HERE</span><h2>Build a setup that<br/>works for you.</h2><p>Start from what you already own—or discover freely.</p></div><div className="hero-decoration"><div className="hero-big-ring"/><Mic2 size={104} strokeWidth={1}/></div></div>
+          <section className="premium-explore-hero">
+            <div className="explore-image" aria-hidden="true"/>
+            <div className="explore-gradient" aria-hidden="true"/>
+            <div className="explore-copy"><span className="hero-kicker">JENLOW TOOLS / DISCOVER</span><h1>Know your gear.<br/><em>Find what's next.</em></h1><p>Explore intelligently, compare confidently or simply discover something new.</p></div>
+            <div className="premium-hero-foot"><span>TECHNOLOGY · MUSIC · KNOWLEDGE</span><span>BUILT FOR YOUR SETUP</span></div>
+          </section>
           <div className="explore-tabs">{[{id:"recommended",name:"For my setup"},{id:"compare",name:"Compare"},{id:"browse",name:"All equipment"},{id:"news",name:"News & guides"}].map(t=><button key={t.id} className={exploreTab===t.id?"current":""} onClick={()=>setExploreTab(t.id)}>{t.name}</button>)}</div>
           {exploreTab==="recommended"&&<><div className="section-title-row"><div><h2>Equipment worth exploring</h2><p>{store.items.length?"Based on your setup preferences and equipment categories.":"Add equipment to My Studio for more personalized suggestions."}</p></div><span className="note-outline"><Info size={14}/> Suggestions are illustrative</span></div><div className="product-grid">{products.slice(0,4).map(p=><article className="product-card" key={p.id}><ProductArt kind={p.icon} accent={p.accent}/><div className="product-card-body"><span className="overline">{p.category}</span><h3>{p.brand} {p.name}</h3><p>{p.note}</p><div className="product-actions"><button onClick={()=>openAdd(p)}><Plus size={15}/> Add to studio</button><button className="small-heart" onClick={()=>{setStore(s=>({...s,wishlist:s.wishlist.includes(p.id)?s.wishlist.filter(x=>x!==p.id):[...s.wishlist,p.id]}));}} aria-label={"Wishlist "+p.name}><Heart size={17} fill={store.wishlist.includes(p.id)?"currentColor":"none"}/></button></div></div></article>)}</div></>}
           {exploreTab==="compare"&&<div className="panel compare-panel"><div className="compare-title"><GitCompareArrows size={24}/><div><h2>Compare products</h2><p>A starter comparison of basic product attributes. Not an acoustic or performance assessment.</p></div></div><div className="compare-selectors"><select value={compareA} onChange={e=>setCompareA(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.name}</option>)}</select><span>VS</span><select value={compareB} onChange={e=>setCompareB(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.name}</option>)}</select></div><div className="compare-results">{["Category","Connection","Typical use"].map((label,i)=><div className="compare-row" key={label}><span>{label}</span><strong>{[products.find(p=>p.id===compareA)?.category,products.find(p=>p.id===compareA)?.connection,products.find(p=>p.id===compareA)?.use][i]}</strong><strong>{[products.find(p=>p.id===compareB)?.category,products.find(p=>p.id===compareB)?.connection,products.find(p=>p.id===compareB)?.use][i]}</strong></div>)}</div></div>}
@@ -226,7 +248,10 @@ function App() {
           {exploreTab==="news"&&<><div className="section-title-row"><div><h2>News & practical guides</h2><p>Editorial layout preview. No live news service is connected yet.</p></div></div><div className="news-list">{newsSamples.map((n,i)=><div className="news-row" key={n.title}><ProductArt kind={n.icon} accent={["blue","slate","purple"][i]} small/><div><span className="overline">{n.eyebrow} · EXAMPLE</span><h3>{n.title}</h3><p>{n.description}</p></div><ArrowUpRight size={18}/></div>)}</div></>}
         </div>}
         {page==="market"&&<div className="page-market">
-          <div className="page-heading"><div><span className="overline">MARKETPLACE / EQUIPMENT EXCHANGE</span><h1>Equipment in motion.</h1><p>Buy, sell, rent, lend—or find what others are looking for.</p></div><div className="heading-buttons"><button className="secondary-button" onClick={()=>{setRequestForm({title:"",category:"Microphones",location:"",type:"borrow"});setModal({type:"request"});}}><Search size={17}/> Post a request</button><button className="primary-button" onClick={()=>activeItems.length?openOffer():openAdd()}><Plus size={17}/> Offer equipment</button></div></div>
+          <section className="premium-market-head">
+            <div><span className="premium-small-caps">JENLOW TOOLS / MARKETPLACE</span><h1>Good equipment.<br/><em>New possibilities.</em></h1><p>Browse offers and requests from one professional marketplace.</p></div>
+            <div className="premium-market-cta"><button className="secondary-button" onClick={()=>{setRequestForm({title:"",category:"Microphones",location:"",type:"borrow"});setModal({type:"request"});}}><Search size={17}/> Post a request</button><button className="primary-button" onClick={()=>activeItems.length?openOffer():openAdd()}><Plus size={17}/> Offer equipment</button></div>
+          </section>
           <div className="market-info"><Info size={17}/><span>This is a frontend preview. Sample listings—including Network request examples—are fictional; your own drafts are saved only in this browser. No real bookings or payments.</span></div>
           <div className="market-tabs">{[{key:"all",name:"All listings"},{key:"offer",name:"Available offers"},{key:"request",name:"Equipment wanted"}].map(t=><button className={marketTab===t.key?"current":""} key={t.key} onClick={()=>setMarketTab(t.key)}>{t.name}</button>)}</div>
           <div className="market-layout"><aside className="filter-panel"><div className="filters-heading"><Filter size={16}/> Filters <button onClick={()=>{setMarketType("all");setMarketCategory("all");setMarketLocation("");setMarketPrice("");setMarketAvailable(false);}}>Reset</button></div><label>TRANSACTION TYPE<select value={marketType} onChange={e=>setMarketType(e.target.value)}><option value="all">All types</option><option value="sell">Buy / sell</option><option value="rent">Rent</option><option value="lend">Lend for free</option><option value="borrow">Borrow request</option></select></label><label>EQUIPMENT CATEGORY<select value={marketCategory} onChange={e=>setMarketCategory(e.target.value)}><option value="all">All categories</option>{["Microphones","Audio interfaces","Monitors","Controllers","Headphones","Instruments","Other"].map(c=><option key={c}>{c}</option>)}</select></label><label>LOCATION<input placeholder="City or region" value={marketLocation} onChange={e=>setMarketLocation(e.target.value)}/></label><label>MAX. PRICE (€)<input type="number" min="0" placeholder="Any price" value={marketPrice} onChange={e=>setMarketPrice(e.target.value)}/></label><label className="filter-checkbox"><input type="checkbox" checked={marketAvailable} onChange={e=>setMarketAvailable(e.target.checked)}/> Available / flexible now</label></aside>
