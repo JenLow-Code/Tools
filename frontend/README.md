@@ -4,8 +4,10 @@
 Desktop-first independent application. Thin horizontal navigation, large intentional typography,
 minimal cards and borders, and a professional equipment inventory.
 
-**Hero rule:** only *Explore* has a large cinematic photographic hero. *My Studio* and *Marketplace*
-are compact working interfaces that put the user's task first.
+**Five tabs, each with a hero:** My Studio, Equipment, News, Gear Exchange and Lab.
+(Lab is a working name for the tools section; it may be renamed to Tools later.)
+Equipment and News have full-height heroes; Gear Exchange and Lab use a shorter one so the
+content starts sooner. My Studio's hero is the entrance to a studio; its workspace opens on click.
 The 2D example room and all product catalogue content are illustrative prototypes.
 
 ## Start
@@ -20,18 +22,23 @@ Build check:
 
 ## Interactive features
 
-- Skippable onboarding with sample studio.
-- My Studio: compact header, then the 2D sample room and the equipment list side by side.
-  Clicking Desk, Rack, Storage or Cellar filters the same list that location chips filter.
+- **My Studio:** vertical rail to switch between your studios (add / rename). Each studio has
+  its own rooms and equipment. A studio's page is a hero; click it to open the workspace (2D
+  sample room + equipment list side by side). Below the hero: sample "Other studios".
 - Individual equipment records, including distinct records for multiple identical microphones.
-- Add, find (name, brand, category, location, serial), relocate, update and remove equipment.
-  Equipment may be left without a location.
-- Add and rename locations (renaming moves the equipment with it); export a CSV inventory.
-- Explore: sample products, saved-products view, elementary comparison and editorial layout.
-- Marketplace: compact header with quick search; one combined offers-and-requests list with
-  filters; requests show what they want (borrow, rent, buy); sample entries are tagged SAMPLE.
-- Sell/rent/lend offer drafts from an owned item, or from Marketplace for gear not yet
+- Add, find (name, brand, category, location, serial), relocate, update and remove equipment;
+  add and rename locations; export a CSV inventory. Equipment may be left without a location.
+- **Equipment:** hero search and category shortcuts, one catalogue with category filter,
+  saved view and an early "Fits my setup" filter (it only shows categories you don't own yet;
+  real compatibility checks are not built), plus an elementary comparison.
+- **News:** reviews (with a translation / show-original toggle, interface idea only), new
+  release alerts and upcoming events. All sample content.
+- **Gear Exchange:** All / Offers / Requests with filters and quick search; requests show what
+  they want (borrow, rent, buy); sample entries are tagged SAMPLE.
+- Sell/rent/lend offer drafts from an owned item, or from Gear Exchange for gear not yet
   registered (this creates the private My Studio record automatically).
+- **Lab:** list of planned tools with how each would work, plus a planned-membership section.
+  Nothing there is built.
 - Local equipment request drafts.
 
 ## Limitations
@@ -41,9 +48,9 @@ Network requests, no bookings, insurance, payments, identity verification, notif
 or multi-device synchronization.** Sample marketplace entries and sample news are explicitly
 fictional. Current product data and comparisons are illustrative rather than verified.
 The virtual studio room is an SVG illustration; no custom photo, 3D engine or real
-acoustic simulation is involved. The Explore hero and the onboarding panel use third-party
+acoustic simulation is involved. The Equipment and My Studio heroes and the onboarding panel use third-party photos; the News, Gear Exchange and Lab heroes are plain gradients. The photos use third-party
 photographic backgrounds that require an internet connection and are design placeholders.
-The first four locations occupy the four hotspots of the sample room (even if renamed);
+The first four locations of a studio occupy the four hotspots of the sample room (even if renamed);
 additional locations appear in the list and chips but not on the illustration.
 
 The workspace stays independent from JenLow Network; no dreams are rendered inside Tools.

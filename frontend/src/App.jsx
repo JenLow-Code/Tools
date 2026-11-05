@@ -1,50 +1,47 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, Bell, Check, CheckCircle2,
   ChevronRight, Download, Filter, GitCompareArrows, Heart, Home, Info, Layers3,
   LayoutGrid, List, MapPin, Mic2, Package, Pencil, Plus, Search, ShieldCheck,
   ShoppingBag, SlidersHorizontal, Sparkles, Trash2, X
 } from "lucide-react";
+import PageHero from "./PageHero.jsx";
+import NewsPage from "./NewsPage.jsx";
+import LabPage from "./LabPage.jsx";
+import { demoMarket, otherStudios, products } from "./data.js";
 import "./styles.css";
 
 const KEY = "jenlow-tools-front-v1";
+const DEFAULT_LOCATIONS = ["Desk", "Rack", "Storage", "Cellar"];
 const BASE = {
   setupComplete: false, studioName: "My Home Studio", purpose: "Music production", daw: "",
-  items: [], listings: [], requests: [], wishlist: [], locations: ["Desk", "Rack", "Storage", "Cellar"]
+  studios: [], items: [], listings: [], requests: [], wishlist: []
 };
-const products = [
-  {id:"scarlett", brand:"Focusrite", name:"Scarlett 2i2 (4th Gen)", category:"Audio interfaces", connection:"USB-C", use:"Recording", accent:"orange", icon:"interface", note:"Compact 2-input recording interface"},
-  {id:"sm7b", brand:"Shure", name:"SM7B", category:"Microphones", connection:"XLR", use:"Voice / broadcast", accent:"slate", icon:"mic", note:"Dynamic vocal microphone"},
-  {id:"hs5", brand:"Yamaha", name:"HS5", category:"Monitors", connection:"XLR / TRS", use:"Monitoring", accent:"blue", icon:"speaker", note:"Active nearfield studio monitor"},
-  {id:"minilab", brand:"Arturia", name:"MiniLab 3", category:"Controllers", connection:"USB / MIDI", use:"Music production", accent:"sand", icon:"keys", note:"Compact MIDI keyboard controller"},
-  {id:"nt1", brand:"RØDE", name:"NT1", category:"Microphones", connection:"XLR", use:"Recording", accent:"purple", icon:"mic", note:"Condenser studio microphone"},
-  {id:"dt770", brand:"beyerdynamic", name:"DT 770 PRO", category:"Headphones", connection:"Analog audio", use:"Monitoring", accent:"indigo", icon:"headphones", note:"Closed-back studio headphones"}
-];
-const demoMarket = [
-  {id:"demo1", title:"Pair of stage microphones", category:"Microphones", location:"Geneva", direction:"request", type:"borrow", price:0, source:"Network preview", availability:"Flexible", demo:true},
-  {id:"demo2", title:"Audio interface, 2 inputs", category:"Audio interfaces", location:"Annemasse", direction:"request", type:"rent", price:0, source:"Network preview", availability:"This month", demo:true},
-  {id:"demo3", title:"Shure SM7B", category:"Microphones", location:"Lyon", direction:"offer", type:"rent", price:18, source:"Tools demo", availability:"Available", demo:true},
-  {id:"demo4", title:"Yamaha HS5 (pair)", category:"Monitors", location:"Annecy", direction:"offer", type:"sell", price:240, source:"Tools demo", availability:"Available", demo:true}
-];
-const newsSamples = [
-  {eyebrow:"PRODUCT WATCH", title:"What to check before choosing a new audio interface", description:"Inputs, outputs, drivers and your actual recording workflow.", icon:"interface"},
-  {eyebrow:"STUDIO GUIDE", title:"Understanding monitor connections", description:"A practical way to compare the ports on speakers and interfaces.", icon:"speaker"},
-  {eyebrow:"EQUIPMENT CARE", title:"Build a reliable maintenance checklist", description:"Keep your inventory records useful long after the first setup.", icon:"mic"}
-];
+// The first four locations of a studio occupy the four hotspots of the sample room, even if renamed.
 const SLOTS = [{left:"40%",top:"67%"},{left:"74%",top:"44%"},{left:"82%",top:"75%"},{left:"14%",top:"75%"}];
-const otherStudios = [
-  {id:"os1", name:"Studio Léman", place:"Geneva", kind:"Home recording studio", tags:["Vocal booth","Audio interface","2 monitors"], terms:"Free lending"},
-  {id:"os2", name:"La Petite Salle", place:"Annecy", kind:"Rehearsal room", tags:["Drum kit","PA system","Amps"], terms:"Rental"},
-  {id:"os3", name:"Atelier Sonore", place:"Lyon", kind:"Podcast studio", tags:["4 microphones","Mixer","Acoustic treatment"], terms:"Rental"}
+const NAV = [
+  {key:"studio", label:"My Studio"},
+  {key:"equipment", label:"Equipment"},
+  {key:"news", label:"News"},
+  {key:"market", label:"Gear Exchange"},
+  {key:"lab", label:"Lab"}
 ];
-const PAGE_TITLES = {studio:"My Studio", explore:"Explore", market:"Marketplace"};
+const CATEGORIES = ["Microphones","Audio interfaces","Monitors","Controllers","Headphones","Instruments","Accessories","Other"];
 const marketLabel = (m) => m.direction==="request"
   ? ({borrow:"Wants to borrow", lend:"Wants to borrow", rent:"Wants to rent", sell:"Wants to buy"}[m.type] || "Wanted")
   : m.type==="sell" ? "For sale" : m.type==="rent" ? "For rent" : "Free lending";
 const uid = () => "jl-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,8);
 function readStore() {
-  try { return {...BASE,...JSON.parse(localStorage.getItem(KEY) || "{}")}; }
-  catch { return BASE; }
+  let raw = {};
+  try { raw = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { raw = {}; }
+  const s = {...BASE, ...raw};
+  // Migration: earlier versions had a single studio with top-level locations.
+  if (!Array.isArray(s.studios) || !s.studios.length) {
+    s.studios = [{id:"studio-1", name:s.studioName || "My Home Studio", locations:Array.isArray(raw.locations) && raw.locations.length ? raw.locations : [...DEFAULT_LOCATIONS]}];
+  }
+  const first = s.studios[0].id;
+  s.items = (s.items || []).map(x => x.studioId ? x : {...x, studioId:first});
+  return s;
 }
 function ProductGlyph({kind="mic"}) {
   if (kind === "interface") return <div className="glyph-interface"><span/><span/><span/><i/></div>;
@@ -154,14 +151,17 @@ function Onboarding({state,onComplete,onAdd}) {
 function App() {
   const [store,setStore]=useState(readStore);
   const [page,setPage]=useState("studio");
+  const [studioId,setStudioId]=useState(null);
   const [studioOpen,setStudioOpen]=useState(false);
   const [activeLocation,setActiveLocation]=useState("All locations");
   const [itemSearch,setItemSearch]=useState("");
   const [modal,setModal]=useState(null);
   const [selectedItem,setSelectedItem]=useState(null);
-  const [exploreTab,setExploreTab]=useState("recommended");
+  const [exploreTab,setExploreTab]=useState("browse");
   const [exploreSearch,setExploreSearch]=useState("");
   const [exploreSaved,setExploreSaved]=useState(false);
+  const [exploreCategory,setExploreCategory]=useState("all");
+  const [fitOnly,setFitOnly]=useState(false);
   const [compareA,setCompareA]=useState("scarlett");
   const [compareB,setCompareB]=useState("sm7b");
   const [marketTab,setMarketTab]=useState("all");
@@ -175,23 +175,42 @@ function App() {
   const [itemForm,setItemForm]=useState({name:"",brand:"",category:"Microphones",location:"Desk",quantity:1,serial:"",condition:"Good"});
   const [offerForm,setOfferForm]=useState({type:"rent",price:"",location:"",availability:"Available",itemId:"",newName:"",newBrand:"",newCategory:"Microphones"});
   const [requestForm,setRequestForm]=useState({title:"",category:"Microphones",location:"",type:"borrow"});
+
   useEffect(()=>{localStorage.setItem(KEY,JSON.stringify(store));},[store]);
   useEffect(()=>{if(toast){const h=setTimeout(()=>setToast(""),3800);return()=>clearTimeout(h);}},[toast]);
-  useEffect(()=>{document.title="JenLow Tools — "+PAGE_TITLES[page];window.scrollTo(0,0);},[page]);
-  const activeItems=store.items.filter(x=>x.status!=="Sold");
+  const pageTitle=(NAV.find(n=>n.key===page)||NAV[0]).label;
+  useEffect(()=>{document.title="JenLow Tools — "+pageTitle;window.scrollTo(0,0);},[page,pageTitle]);
+
+  // ---- studios, locations, items ----
+  const studios=store.studios;
+  const studio=studios.find(s=>s.id===studioId)||studios[0];
+  const locations=studio.locations;
+  const allActive=store.items.filter(x=>x.status!=="Sold");
+  const studioItems=store.items.filter(x=>x.studioId===studio.id);
+  const activeItems=allActive.filter(x=>x.studioId===studio.id);
   const availableCount=activeItems.filter(x=>x.status==="Available").length;
   const countIn=(loc)=>activeItems.filter(x=>x.location===loc).length;
   const inventory=activeItems.filter(x=>(activeLocation==="All locations"||x.location===activeLocation)&&[x.name,x.brand,x.category,x.location,x.serial].join(" ").toLowerCase().includes(itemSearch.trim().toLowerCase()));
+
+  // ---- marketplace ----
   const userOffers=store.listings.map(o=>({...o,direction:"offer",source:"My listing",demo:false}));
   const userRequests=store.requests.map(o=>({...o,direction:"request",source:"My request",demo:false}));
   const marketplace=[...userOffers,...userRequests,...demoMarket].filter(x=>(marketTab==="all"||x.direction===marketTab)&&(marketType==="all"||x.type===marketType)&&(marketCategory==="all"||x.category===marketCategory)&&(!marketLocation||x.location.toLowerCase().includes(marketLocation.toLowerCase()))&&(!marketAvailable||x.availability==="Available"||x.availability==="Flexible")&&(!marketPrice||x.direction==="request"||Number(x.price)<=Number(marketPrice))&&(!marketSearch.trim()||(x.title+" "+x.category).toLowerCase().includes(marketSearch.trim().toLowerCase())));
-  const displayProducts=products.filter(p=>(p.brand+" "+p.name+" "+p.category).toLowerCase().includes(exploreSearch.toLowerCase())&&(!exploreSaved||store.wishlist.includes(p.id)));
-  const toggleWish=(id)=>setStore(s=>({...s,wishlist:s.wishlist.includes(id)?s.wishlist.filter(x=>x!==id):[...s.wishlist,id]}));
   const resetMarketFilters=()=>{setMarketType("all");setMarketCategory("all");setMarketLocation("");setMarketPrice("");setMarketAvailable(false);setMarketSearch("");};
+
+  // ---- equipment catalogue ----
+  const productCategories=[...new Set(products.map(p=>p.category))];
+  const ownedCategories=new Set(allActive.map(x=>x.category));
+  const displayProducts=products.filter(p=>(p.brand+" "+p.name+" "+p.category).toLowerCase().includes(exploreSearch.trim().toLowerCase())&&(exploreCategory==="all"||p.category===exploreCategory)&&(!exploreSaved||store.wishlist.includes(p.id))&&(!fitOnly||!ownedCategories.has(p.category)));
+  const toggleWish=(id)=>setStore(s=>({...s,wishlist:s.wishlist.includes(id)?s.wishlist.filter(x=>x!==id):[...s.wishlist,id]}));
+  const goToList=()=>setTimeout(()=>document.getElementById("equipment-list")?.scrollIntoView({behavior:"smooth",block:"start"}),0);
+  const pickCategory=(c)=>{setExploreCategory(c);setExploreTab("browse");goToList();};
+
   const notify=(s)=>setToast(s);
-  const openAdd=(product)=>{setItemForm({name:product?.name||"",brand:product?.brand||"",category:product?.category||"Microphones",location:activeLocation==="All locations"?(store.locations[0]||""):activeLocation,quantity:1,serial:"",condition:"Good"});setModal({type:"add"});};
-  const openOffer=(id)=>{setOfferForm({type:"rent",price:"",location:"",availability:"Available",itemId:id||activeItems[0]?.id||"__new",newName:"",newBrand:"",newCategory:"Microphones"});setModal({type:"offer"});};
-  const addItem=(e)=>{e.preventDefault();if(!itemForm.name.trim())return;const count=Math.min(30,Math.max(1,Number(itemForm.quantity)||1));const added=Array.from({length:count},(_,i)=>({id:uid(),name:itemForm.name.trim(),brand:itemForm.brand.trim(),category:itemForm.category,location:itemForm.location,condition:itemForm.condition,serial:count===1?itemForm.serial.trim():"",status:"Available",addedAt:new Date().toISOString()}));setStore(s=>({...s,items:[...s.items,...added]}));setModal(null);notify(count+" item"+(count>1?"s":"")+" added to My Studio");};
+  const selectStudio=(id)=>{setStudioId(id);setStudioOpen(false);setActiveLocation("All locations");setItemSearch("");};
+  const openAdd=(product)=>{setItemForm({name:product?.name||"",brand:product?.brand||"",category:product?.category||"Microphones",location:activeLocation==="All locations"?(locations[0]||""):activeLocation,quantity:1,serial:"",condition:"Good"});setModal({type:"add"});};
+  const openOffer=(id)=>{setOfferForm({type:"rent",price:"",location:"",availability:"Available",itemId:id||activeItems[0]?.id||allActive[0]?.id||"__new",newName:"",newBrand:"",newCategory:"Microphones"});setModal({type:"offer"});};
+  const addItem=(e)=>{e.preventDefault();if(!itemForm.name.trim())return;const count=Math.min(30,Math.max(1,Number(itemForm.quantity)||1));const added=Array.from({length:count},()=>({id:uid(),studioId:studio.id,name:itemForm.name.trim(),brand:itemForm.brand.trim(),category:itemForm.category,location:itemForm.location,condition:itemForm.condition,serial:count===1?itemForm.serial.trim():"",status:"Available",addedAt:new Date().toISOString()}));setStore(s=>({...s,items:[...s.items,...added]}));setModal(null);notify(count+" item"+(count>1?"s":"")+" added to "+studio.name);};
   const updateItem=(id,change)=>setStore(s=>({...s,items:s.items.map(x=>x.id===id?{...x,...change}:x)}));
   const deleteItem=(id)=>{setStore(s=>({...s,items:s.items.filter(x=>x.id!==id),listings:s.listings.filter(x=>x.itemId!==id)}));setSelectedItem(null);notify("Item removed from inventory");};
   const createOffer=(e)=>{e.preventDefault();
@@ -200,7 +219,7 @@ function App() {
     if(isNew){
       if(!offerForm.newName.trim())return;
       // Offering gear that is not registered yet silently creates its private My Studio record.
-      item={id:uid(),name:offerForm.newName.trim(),brand:offerForm.newBrand.trim(),category:offerForm.newCategory,location:"",condition:"Good",serial:"",status:"Available",addedAt:new Date().toISOString()};
+      item={id:uid(),studioId:studio.id,name:offerForm.newName.trim(),brand:offerForm.newBrand.trim(),category:offerForm.newCategory,location:"",condition:"Good",serial:"",status:"Available",addedAt:new Date().toISOString()};
     }
     if(!item)return;
     const offer={id:uid(),itemId:item.id,title:item.name,category:item.category,location:offerForm.location.trim()||"Location not set",type:offerForm.type,price:Number(offerForm.price)||0,availability:offerForm.availability};
@@ -208,34 +227,48 @@ function App() {
     setModal(null);
     notify(isNew?"Draft offer created · item added privately to My Studio · not published online":"Draft offer created locally · not published online");
   };
+  const createRequest=(e)=>{e.preventDefault();if(!requestForm.title.trim())return;setStore(s=>({...s,requests:[{id:uid(),title:requestForm.title.trim(),category:requestForm.category,location:requestForm.location.trim()||"Location not set",type:requestForm.type,price:0,availability:"Flexible"},...s.requests]}));setModal(null);notify("Request saved locally · not visible to others");};
   const saveLocation=(e)=>{e.preventDefault();
     const value=e.currentTarget.elements.namedItem("locationName").value.trim();
     const old=modal?.rename;
     if(!value){setModal(null);return;}
-    if(store.locations.some(l=>l.toLowerCase()===value.toLowerCase()&&l!==old)){notify("A location with that name already exists");return;}
-    if(old){
-      setStore(s=>({...s,locations:s.locations.map(l=>l===old?value:l),items:s.items.map(x=>x.location===old?{...x,location:value}:x)}));
-      if(activeLocation===old)setActiveLocation(value);
-      notify("Location renamed");
+    if(locations.some(l=>l.toLowerCase()===value.toLowerCase()&&l!==old)){notify("A location with that name already exists");return;}
+    setStore(s=>({...s,
+      studios:s.studios.map(st=>st.id===studio.id?{...st,locations:old?st.locations.map(l=>l===old?value:l):[...st.locations,value]}:st),
+      items:old?s.items.map(x=>x.studioId===studio.id&&x.location===old?{...x,location:value}:x):s.items}));
+    if(old&&activeLocation===old)setActiveLocation(value);
+    notify(old?"Location renamed":"Location added");
+    setModal(null);
+  };
+  const saveStudio=(e)=>{e.preventDefault();
+    const name=e.currentTarget.elements.namedItem("studioName").value.trim();
+    if(!name){setModal(null);return;}
+    if(modal?.rename){
+      setStore(s=>({...s,studios:s.studios.map(st=>st.id===studio.id?{...st,name}:st)}));
+      notify("Studio renamed");
     } else {
-      setStore(s=>({...s,locations:[...s.locations,value]}));
-      notify("Location added");
+      const created={id:uid(),name,locations:[...DEFAULT_LOCATIONS]};
+      setStore(s=>({...s,studios:[...s.studios,created]}));
+      selectStudio(created.id);
+      notify(name+" created");
     }
     setModal(null);
   };
-  const createRequest=(e)=>{e.preventDefault();if(!requestForm.title.trim())return;setStore(s=>({...s,requests:[{id:uid(),title:requestForm.title.trim(),category:requestForm.category,location:requestForm.location.trim()||"Location not set",type:requestForm.type,price:0,availability:"Flexible"},...s.requests]}));setModal(null);notify("Request saved locally · not visible to others");};
-  const exportCSV=()=>{const cols=["id","brand","name","category","serial","location","condition","status"];const csv=[cols.join(","),...store.items.map(x=>cols.map(k=>'"'+String(x[k]||"").replaceAll('"','""')+'"').join(","))].join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="jenlow-tools-inventory.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+  const exportCSV=()=>{const names=Object.fromEntries(studios.map(s=>[s.id,s.name]));const cols=["id","studio","brand","name","category","serial","location","condition","status"];const csv=[cols.join(","),...store.items.map(x=>cols.map(k=>'"'+String(k==="studio"?names[x.studioId]:x[k]||"").replaceAll('"','""')+'"').join(",")) ].join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="jenlow-tools-inventory.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
   const renderItem=(item)=> <button key={item.id} className="inventory-row" onClick={()=>setSelectedItem(item)}>
     <div className="inventory-mini"><ProductGlyph kind={products.find(p=>p.name===item.name)?.icon||"mic"}/></div>
     <div className="item-primary"><strong>{item.name}</strong><span>{item.brand?item.brand+" · ":""}{item.category}</span></div>
     <span className="row-location"><MapPin size={13}/>{item.location||"No location"}</span><span className={"status-pill "+(item.status==="Available"?"good":"")}>{item.status}</span><ChevronRight className="row-chevron" size={17}/>
   </button>;
+  const productCard=(p)=><article className="product-card" key={p.id}><ProductArt kind={p.icon} accent={p.accent}/><div className="product-card-body"><span className="overline">{p.category}</span><h3>{p.brand} {p.name}</h3><p>{p.note}</p><div className="product-actions"><button onClick={()=>openAdd(p)}><Plus size={15}/> Add to studio</button><button className="small-heart" onClick={()=>toggleWish(p.id)} aria-label={"Wishlist "+p.name}><Heart size={17} fill={store.wishlist.includes(p.id)?"currentColor":"none"}/></button></div></div></article>;
+  const cmpA=products.find(p=>p.id===compareA), cmpB=products.find(p=>p.id===compareB);
+
   return <div className="app-shell">
     <div className="app-main">
       <header className="topbar">
         <a className="premium-logo" href="#" onClick={e=>{e.preventDefault();setPage("studio");setStudioOpen(false);}} aria-label="JenLow Tools Home"><span>jenlow</span><b>tools<span className="logo-stop">.</span></b></a>
         <nav className="premium-nav" aria-label="Tools navigation">
-          {[{key:"studio",label:"My Studio"},{key:"explore",label:"Explore"},{key:"market",label:"Marketplace"}].map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>{setPage(n.key);if(n.key==="studio")setStudioOpen(false);}}>{n.label}</button>)}
+          {NAV.map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>{setPage(n.key);if(n.key==="studio")setStudioOpen(false);}}>{n.label}</button>)}
         </nav>
         <div className="premium-header-actions">
           <button className="premium-icon" title="Add equipment" onClick={()=>openAdd()} aria-label="Add equipment"><Plus size={19}/></button>
@@ -245,95 +278,125 @@ function App() {
         </div>
       </header>
       <main className="main-content">
-        {page==="studio"&&<div className="page-studio">
-          {!studioOpen&&<><section className="premium-studio-hero" role="button" tabIndex={0} aria-label={"Open "+store.studioName} onClick={()=>setStudioOpen(true)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setStudioOpen(true);}}}>
-            <div className="hero-photography" aria-hidden="true"/>
-            <div className="hero-shade" aria-hidden="true"/>
-            <div className="hero-content">
-              <div className="hero-topline"><span className="hero-kicker">JENLOW TOOLS / YOUR STUDIO</span><span className="hero-topline-right"><span className="hero-indicator"/> PRIVATE STUDIO</span></div>
-              <div className="hero-center">
-                <span className="hero-pretitle">MY STUDIO</span>
-                <h1>{store.studioName}</h1>
-                <p>{activeItems.length} {activeItems.length===1?"item":"items"} across {store.locations.length} locations. Everything you own, in its place.</p>
-                <div className="hero-buttons">
-                  <button className="hero-primary" onClick={e=>{e.stopPropagation();setStudioOpen(true);}}>Open my studio <ArrowUpRight size={19}/></button>
-                  <button className="hero-secondary" onClick={e=>{e.stopPropagation();openAdd();}}>Add equipment <ArrowRight size={18}/></button>
+        {page==="studio"&&<div className="page-studio studio-layout">
+          <aside className="studio-rail" aria-label="My studios">
+            <span className="premium-small-caps">MY STUDIOS</span>
+            <nav className="studio-rail-list">{studios.map(st=><button key={st.id} className={st.id===studio.id?"active":""} onClick={()=>selectStudio(st.id)}><span className="rail-name">{st.name}</span><span className="rail-count">{store.items.filter(x=>x.studioId===st.id&&x.status!=="Sold").length}</span></button>)}</nav>
+            <button className="rail-add" onClick={()=>setModal({type:"studio"})}><Plus size={14}/> New studio</button>
+            <p className="rail-note">Each studio keeps its own rooms and equipment.</p>
+          </aside>
+          <div className="studio-main">
+            {!studioOpen&&<>
+              <section className="premium-studio-hero" role="button" tabIndex={0} aria-label={"Open "+studio.name} onClick={()=>setStudioOpen(true)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setStudioOpen(true);}}}>
+                <div className="hero-photography" aria-hidden="true"/>
+                <div className="hero-shade" aria-hidden="true"/>
+                <div className="hero-content">
+                  <div className="hero-topline"><span className="hero-kicker">JENLOW TOOLS / YOUR STUDIO</span><span className="hero-topline-right"><span className="hero-indicator"/> PRIVATE STUDIO</span></div>
+                  <div className="hero-center">
+                    <span className="hero-pretitle">MY STUDIO</span>
+                    <h1>{studio.name}</h1>
+                    <p>{activeItems.length} {activeItems.length===1?"item":"items"} across {locations.length} locations. Everything you own, in its place.</p>
+                    <div className="hero-buttons">
+                      <button className="hero-primary" onClick={e=>{e.stopPropagation();setStudioOpen(true);}}>Open my studio <ArrowUpRight size={19}/></button>
+                      <button className="hero-secondary" onClick={e=>{e.stopPropagation();openAdd();}}>Add equipment <ArrowRight size={18}/></button>
+                    </div>
+                  </div>
+                  <div className="hero-bottomline"><span>STUDIO {String(studios.indexOf(studio)+1).padStart(2,"0")} <i/> {studio.name}</span><span>CLICK TO OPEN · SCROLL FOR OTHER STUDIOS <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
                 </div>
+              </section>
+              <section className="other-studios">
+                <div className="other-studios-head"><div><span className="premium-small-caps">DISCOVER</span><h2>Other studios</h2><p>Studios with similar features. Sample entries only: no real studios are listed yet.</p></div></div>
+                <div className="studio-cards">{otherStudios.map(o=><button key={o.id} className="studio-card" onClick={()=>notify("Sample studio: illustrative only. Studio pages and booking are not built yet.")}><div className="studio-card-art"><span className="sample-tag">SAMPLE</span>{o.kind.toUpperCase()}</div><h3>{o.name}</h3><p>{o.place} · {o.terms}</p><div className="studio-tags">{o.tags.map(t=><span key={t}>{t}</span>)}</div></button>)}</div>
+              </section>
+            </>}
+            {studioOpen&&<>
+              <button className="studio-back" onClick={()=>setStudioOpen(false)}><ArrowLeft size={15}/> Overview</button>
+              <section className="studio-head">
+                <div>
+                  <span className="premium-small-caps">YOUR WORKSPACE</span>
+                  <h2>{studio.name}</h2>
+                  <p className="studio-summary"><strong>{activeItems.length}</strong> {activeItems.length===1?"item":"items"}<i/><strong>{locations.length}</strong> locations<i/><strong>{availableCount}</strong> available<i/>private by default</p>
+                </div>
+                <div className="heading-buttons"><button className="secondary-button" onClick={()=>setModal({type:"studio",rename:true})}><Pencil size={15}/> Rename</button><button className="secondary-button" onClick={exportCSV}><Download size={16}/> Export CSV</button><button className="primary-button" onClick={()=>openAdd()}><Plus size={17}/> Add equipment</button></div>
+              </section>
+              <div className="studio-workspace">
+                <div className="studio-visual">
+                  <Scene items={studioItems} locations={locations} onSelect={l=>setActiveLocation(a=>a===l?"All locations":l)} location={activeLocation} onAdd={()=>openAdd()}/>
+                  <div className="premium-room-caption"><span>SAMPLE ROOM</span><span>Select a spot to filter the equipment list</span></div>
+                </div>
+                <section className="studio-inventory" aria-label="Equipment inventory">
+                  <div className="inventory-head"><div><h2>Equipment</h2><p>Each physical item is tracked separately.</p></div><span className="subtle-label">{inventory.length} SHOWN</span></div>
+                  <div className="location-chips" role="group" aria-label="Filter by location">
+                    <button className={activeLocation==="All locations"?"active":""} onClick={()=>setActiveLocation("All locations")}>All <span>{activeItems.length}</span></button>
+                    {locations.map(l=><button key={l} className={activeLocation===l?"active":""} onClick={()=>setActiveLocation(l)}>{l} <span>{countIn(l)}</span></button>)}
+                    <button className="chip-action" onClick={()=>setModal({type:"location"})}><Plus size={13}/> Location</button>
+                    {activeLocation!=="All locations"&&<button className="chip-action" onClick={()=>setModal({type:"location",rename:activeLocation})}><Pencil size={13}/> Rename</button>}
+                  </div>
+                  <div className="search-input inventory-search"><Search size={17}/><input placeholder="Search equipment, brand, location or serial…" value={itemSearch} onChange={e=>setItemSearch(e.target.value)}/></div>
+                  {inventory.length>0?<div className="inventory-list">{inventory.map(renderItem)}</div>:<div className="empty-state"><div className="empty-icon"><Package size={26}/></div><h3>{activeItems.length?"No matching equipment":"Your studio starts here."}</h3><p>{activeItems.length?"Try a different search or location.":"Add your first microphone, instrument or interface. You'll see it in the list and at its chosen location."}</p><button className="primary-button" onClick={()=>openAdd()}><Plus size={16}/> Add equipment</button></div>}
+                </section>
               </div>
-              <div className="hero-bottomline"><span>STUDIO 01 <i/> {store.studioName}</span><span>CLICK TO OPEN · SCROLL FOR OTHER STUDIOS <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
-            </div>
-          </section>
-          <section className="other-studios">
-            <div className="other-studios-head"><div><span className="premium-small-caps">DISCOVER</span><h2>Other studios</h2><p>Studios with similar features. Sample entries only: no real studios are listed yet.</p></div></div>
-            <div className="studio-cards">{otherStudios.map(o=><button key={o.id} className="studio-card" onClick={()=>notify("Sample studio: illustrative only. Studio pages and booking are not built yet.")}><div className="studio-card-art"><span className="sample-tag">SAMPLE</span>{o.kind.toUpperCase()}</div><h3>{o.name}</h3><p>{o.place} · {o.terms}</p><div className="studio-tags">{o.tags.map(t=><span key={t}>{t}</span>)}</div></button>)}</div>
-          </section>
-          </>}
-          {studioOpen&&<>
-          <button className="studio-back" onClick={()=>setStudioOpen(false)}><ArrowLeft size={15}/> All studios</button>
-          <section className="studio-head">
-            <div>
-              <span className="premium-small-caps">YOUR WORKSPACE</span>
-              <h2>The room and its equipment</h2>
-              <p className="studio-summary"><strong>{activeItems.length}</strong> {activeItems.length===1?"item":"items"}<i/><strong>{store.locations.length}</strong> locations<i/><strong>{availableCount}</strong> available<i/>private by default</p>
-            </div>
-            <div className="heading-buttons"><button className="secondary-button" onClick={exportCSV}><Download size={16}/> Export CSV</button><button className="primary-button" onClick={()=>openAdd()}><Plus size={17}/> Add equipment</button></div>
-          </section>
-          <div className="studio-workspace">
-            <div className="studio-visual">
-              <Scene items={store.items} locations={store.locations} onSelect={l=>setActiveLocation(a=>a===l?"All locations":l)} location={activeLocation} onAdd={()=>openAdd()}/>
-              <div className="premium-room-caption"><span>SAMPLE ROOM</span><span>Select a spot to filter the equipment list</span></div>
-            </div>
-            <section className="studio-inventory" aria-label="Equipment inventory">
-              <div className="inventory-head"><div><h2>Equipment</h2><p>Each physical item is tracked separately.</p></div><span className="subtle-label">{inventory.length} SHOWN</span></div>
-              <div className="location-chips" role="group" aria-label="Filter by location">
-                <button className={activeLocation==="All locations"?"active":""} onClick={()=>setActiveLocation("All locations")}>All <span>{activeItems.length}</span></button>
-                {store.locations.map(l=><button key={l} className={activeLocation===l?"active":""} onClick={()=>setActiveLocation(l)}>{l} <span>{countIn(l)}</span></button>)}
-                <button className="chip-action" onClick={()=>setModal({type:"location"})}><Plus size={13}/> Location</button>
-                {activeLocation!=="All locations"&&<button className="chip-action" onClick={()=>setModal({type:"location",rename:activeLocation})}><Pencil size={13}/> Rename</button>}
-              </div>
-              <div className="search-input inventory-search"><Search size={17}/><input placeholder="Search equipment, brand, location or serial…" value={itemSearch} onChange={e=>setItemSearch(e.target.value)}/></div>
-              {inventory.length>0?<div className="inventory-list">{inventory.map(renderItem)}</div>:<div className="empty-state"><div className="empty-icon"><Package size={26}/></div><h3>{activeItems.length?"No matching equipment":"Your studio starts here."}</h3><p>{activeItems.length?"Try a different search or location.":"Add your first microphone, instrument or interface. You'll see it in the list and at its chosen location."}</p><button className="primary-button" onClick={()=>openAdd()}><Plus size={16}/> Add equipment</button></div>}
-            </section>
+              <div className="studio-bottom"><div className="small-feature"><span><Sparkles size={19}/></span><div><strong>Explore your next upgrade</strong><p>Browse the sample catalogue and compare products.</p><button onClick={()=>{setPage("equipment");setExploreTab("browse");}}>Explore equipment <ArrowRight size={15}/></button></div></div><div className="small-feature"><span><ShoppingBag size={19}/></span><div><strong>Make the most of your gear</strong><p>Draft a sale, rental or free loan from an inventory item.</p><button onClick={()=>openOffer()}>Create an offer <ArrowRight size={15}/></button></div></div></div>
+            </>}
           </div>
-          <div className="studio-bottom"><div className="small-feature"><span><Sparkles size={19}/></span><div><strong>Explore your next upgrade</strong><p>Browse the sample catalogue and compare products.</p><button onClick={()=>{setPage("explore");setExploreTab("recommended");}}>Explore equipment <ArrowRight size={15}/></button></div></div><div className="small-feature"><span><ShoppingBag size={19}/></span><div><strong>Make the most of your gear</strong><p>Draft a sale, rental or free loan from an inventory item.</p><button onClick={()=>openOffer()}>Create an offer <ArrowRight size={15}/></button></div></div></div>
+        </div>}
+
+        {page==="equipment"&&<div className="page-equipment">
+          <PageHero
+            kicker="JENLOW TOOLS / EQUIPMENT" title="Know your gear." accent="Find what's next."
+            text="Everything in one catalogue. Search it, compare it, or narrow it to what suits your setup."
+            foot={["CATALOGUE · COMPARE · SAVE","BUILT FOR YOUR SETUP"]} variant="mic"
+          >
+            <div className="hero-search"><Search size={18}/><input aria-label="Search equipment" placeholder="Search any brand, model or category…" value={exploreSearch} onChange={e=>{setExploreSearch(e.target.value);setExploreTab("browse");}} onKeyDown={e=>{if(e.key==="Enter")goToList();}}/></div>
+            <div className="hero-chips">{productCategories.map(c=><button key={c} onClick={()=>pickCategory(c)}>{c}</button>)}</div>
+          </PageHero>
+          <div className="explore-tabs" id="equipment-list">{[{id:"browse",name:"All equipment"},{id:"compare",name:"Compare"}].map(t=><button key={t.id} className={exploreTab===t.id?"current":""} onClick={()=>setExploreTab(t.id)}>{t.name}</button>)}</div>
+          {exploreTab==="browse"&&<>
+            <div className="explore-toolbar"><div className="search-input explore-search"><Search size={18}/><input placeholder="Search brands, models, categories…" value={exploreSearch} onChange={e=>setExploreSearch(e.target.value)}/></div>
+              <button className={"saved-toggle"+(fitOnly?" active":"")} onClick={()=>setFitOnly(v=>!v)} aria-pressed={fitOnly}><Sparkles size={15}/> Fits my setup</button>
+              <button className={"saved-toggle"+(exploreSaved?" active":"")} onClick={()=>setExploreSaved(v=>!v)} aria-pressed={exploreSaved}><Heart size={15} fill={exploreSaved?"currentColor":"none"}/> Saved ({store.wishlist.length})</button></div>
+            <div className="category-chips" role="group" aria-label="Filter by category"><button className={exploreCategory==="all"?"active":""} onClick={()=>setExploreCategory("all")}>All categories</button>{productCategories.map(c=><button key={c} className={exploreCategory===c?"active":""} onClick={()=>setExploreCategory(c)}>{c}</button>)}</div>
+            {fitOnly&&<div className="market-info"><Info size={16}/><span>{allActive.length?"Early prototype: this only shows categories you don't own yet. Real compatibility checks (connectors, drivers, your stated needs) are not built.":"Add equipment in My Studio first, so there is a setup to match. Until then this filter shows everything."}</span></div>}
+            <div className="product-grid">{displayProducts.map(productCard)}</div>
+            {!displayProducts.length&&<div className="empty-state"><p>{exploreSaved&&!store.wishlist.length?"Nothing saved yet. Use the heart on any product to keep it here.":"No matching sample products. You can always add equipment manually in My Studio."}</p></div>}
+            <p className="catalogue-note"><Info size={14}/> Sample catalogue for the prototype: entries are illustrative and not verified specifications.</p>
           </>}
+          {exploreTab==="compare"&&<div className="panel compare-panel"><div className="compare-title"><GitCompareArrows size={24}/><div><h2>Compare products</h2><p>A starter comparison of basic product attributes. Not an acoustic or performance assessment.</p></div></div><div className="compare-selectors"><select value={compareA} onChange={e=>setCompareA(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.name}</option>)}</select><span>VS</span><select value={compareB} onChange={e=>setCompareB(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.name}</option>)}</select></div><div className="compare-results">{[["Category","category"],["Connection","connection"],["Typical use","use"]].map(([label,k])=><div className="compare-row" key={label}><span>{label}</span><strong>{cmpA?.[k]}</strong><strong>{cmpB?.[k]}</strong></div>)}</div></div>}
         </div>}
-        {page==="explore"&&<div className="page-explore">
-          <section className="premium-explore-hero">
-            <div className="explore-image" aria-hidden="true"/>
-            <div className="explore-gradient" aria-hidden="true"/>
-            <div className="explore-copy"><span className="hero-kicker">JENLOW TOOLS / DISCOVER</span><h1>Know your gear.<br/><em>Find what's next.</em></h1><p>Explore intelligently, compare confidently or simply discover something new.</p></div>
-            <div className="premium-hero-foot"><span>TECHNOLOGY · MUSIC · KNOWLEDGE</span><span>BUILT FOR YOUR SETUP</span></div>
-          </section>
-          <div className="explore-tabs">{[{id:"recommended",name:"For my setup"},{id:"compare",name:"Compare"},{id:"browse",name:"All equipment"},{id:"news",name:"News & guides"}].map(t=><button key={t.id} className={exploreTab===t.id?"current":""} onClick={()=>setExploreTab(t.id)}>{t.name}</button>)}</div>
-          {exploreTab==="recommended"&&<><div className="section-title-row"><div><h2>Equipment worth exploring</h2><p>A sample selection from the prototype catalogue. Suggestions are not yet based on your setup.</p></div><span className="note-outline"><Info size={14}/> Illustrative data</span></div><div className="product-grid">{products.slice(0,4).map(p=><article className="product-card" key={p.id}><ProductArt kind={p.icon} accent={p.accent}/><div className="product-card-body"><span className="overline">{p.category}</span><h3>{p.brand} {p.name}</h3><p>{p.note}</p><div className="product-actions"><button onClick={()=>openAdd(p)}><Plus size={15}/> Add to studio</button><button className="small-heart" onClick={()=>toggleWish(p.id)} aria-label={"Wishlist "+p.name}><Heart size={17} fill={store.wishlist.includes(p.id)?"currentColor":"none"}/></button></div></div></article>)}</div></>}
-          {exploreTab==="compare"&&<div className="panel compare-panel"><div className="compare-title"><GitCompareArrows size={24}/><div><h2>Compare products</h2><p>A starter comparison of basic product attributes. Not an acoustic or performance assessment.</p></div></div><div className="compare-selectors"><select value={compareA} onChange={e=>setCompareA(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.name}</option>)}</select><span>VS</span><select value={compareB} onChange={e=>setCompareB(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.name}</option>)}</select></div><div className="compare-results">{["Category","Connection","Typical use"].map((label,i)=><div className="compare-row" key={label}><span>{label}</span><strong>{[products.find(p=>p.id===compareA)?.category,products.find(p=>p.id===compareA)?.connection,products.find(p=>p.id===compareA)?.use][i]}</strong><strong>{[products.find(p=>p.id===compareB)?.category,products.find(p=>p.id===compareB)?.connection,products.find(p=>p.id===compareB)?.use][i]}</strong></div>)}</div></div>}
-          {exploreTab==="browse"&&<><div className="explore-toolbar"><div className="search-input explore-search"><Search size={18}/><input placeholder="Search brands, models, categories..." value={exploreSearch} onChange={e=>setExploreSearch(e.target.value)}/></div><button className={"saved-toggle"+(exploreSaved?" active":"")} onClick={()=>setExploreSaved(v=>!v)} aria-pressed={exploreSaved}><Heart size={15} fill={exploreSaved?"currentColor":"none"}/> Saved ({store.wishlist.length})</button></div><div className="product-grid">{displayProducts.map(p=><article className="product-card" key={p.id}><ProductArt kind={p.icon} accent={p.accent}/><div className="product-card-body"><span className="overline">{p.category}</span><h3>{p.brand} {p.name}</h3><p>{p.note}</p><div className="product-actions"><button onClick={()=>openAdd(p)}><Plus size={15}/> Add to studio</button><button className="small-heart" onClick={()=>toggleWish(p.id)} aria-label={"Wishlist "+p.name}><Heart size={17} fill={store.wishlist.includes(p.id)?"currentColor":"none"}/></button></div></div></article>)}</div>{!displayProducts.length&&<div className="empty-state"><p>{exploreSaved&&!store.wishlist.length?"Nothing saved yet. Use the heart on any product to keep it here.":"No matching sample products. You can always add equipment manually in My Studio."}</p></div>}</>}
-          {exploreTab==="news"&&<><div className="section-title-row"><div><h2>News & practical guides</h2><p>Editorial layout preview. No live news service is connected yet.</p></div></div><div className="news-list">{newsSamples.map((n,i)=><div className="news-row" key={n.title}><ProductArt kind={n.icon} accent={["blue","slate","purple"][i]} small/><div><span className="overline">{n.eyebrow} · EXAMPLE</span><h3>{n.title}</h3><p>{n.description}</p></div><ArrowUpRight size={18}/></div>)}</div></>}
-        </div>}
+
+        {page==="news"&&<NewsPage notify={notify}/>}
+
         {page==="market"&&<div className="page-market">
-          <section className="market-head">
-            <div><span className="premium-small-caps">MARKETPLACE</span><h1>Offers and requests</h1></div>
-            <div className="market-head-tools">
-              <div className="search-input market-search"><Search size={16}/><input placeholder="Search equipment…" value={marketSearch} onChange={e=>setMarketSearch(e.target.value)}/></div>
-              <button className="secondary-button" onClick={()=>{setRequestForm({title:"",category:"Microphones",location:"",type:"borrow"});setModal({type:"request"});}}><Search size={16}/> Post a request</button>
-              <button className="primary-button" onClick={()=>openOffer()}><Plus size={17}/> Offer equipment</button>
+          <PageHero
+            kicker="JENLOW TOOLS / GEAR EXCHANGE" title="Good equipment." accent="New possibilities."
+            text="Browse offers and requests from one professional marketplace."
+            foot={["OFFERS · REQUESTS","LEND · RENT · SELL"]} variant="exchange" short
+          >
+            <div className="hero-buttons">
+              <button className="hero-primary" onClick={()=>openOffer()}>Offer equipment <ArrowUpRight size={19}/></button>
+              <button className="hero-secondary" onClick={()=>{setRequestForm({title:"",category:"Microphones",location:"",type:"borrow"});setModal({type:"request"});}}>Post a request <ArrowRight size={18}/></button>
             </div>
-          </section>
+          </PageHero>
           <div className="market-info"><Info size={16}/><span>Prototype preview: listings marked SAMPLE (including Network request examples) are fictional, and your own drafts are saved only in this browser. No real bookings or payments.</span></div>
-          <div className="market-tabs">{[{key:"all",name:"All listings"},{key:"offer",name:"Offers"},{key:"request",name:"Requests"}].map(t=><button className={marketTab===t.key?"current":""} key={t.key} onClick={()=>setMarketTab(t.key)}>{t.name}</button>)}</div>
-          <div className="market-layout"><aside className="filter-panel"><div className="filters-heading"><Filter size={16}/> Filters <button onClick={resetMarketFilters}>Reset</button></div><label>TRANSACTION TYPE<select value={marketType} onChange={e=>setMarketType(e.target.value)}><option value="all">All types</option><option value="sell">Buy / sell</option><option value="rent">Rent</option><option value="lend">Lend for free</option><option value="borrow">Borrow request</option></select></label><label>EQUIPMENT CATEGORY<select value={marketCategory} onChange={e=>setMarketCategory(e.target.value)}><option value="all">All categories</option>{["Microphones","Audio interfaces","Monitors","Controllers","Headphones","Instruments","Accessories","Other"].map(c=><option key={c}>{c}</option>)}</select></label><label>LOCATION<input placeholder="City or region" value={marketLocation} onChange={e=>setMarketLocation(e.target.value)}/></label><label>MAX. PRICE (€)<input type="number" min="0" placeholder="Any price" value={marketPrice} onChange={e=>setMarketPrice(e.target.value)}/></label><label className="filter-checkbox"><input type="checkbox" checked={marketAvailable} onChange={e=>setMarketAvailable(e.target.checked)}/> Available / flexible now</label></aside>
+          <div className="market-toolbar">
+            <div className="market-tabs">{[{key:"all",name:"All"},{key:"offer",name:"Offers"},{key:"request",name:"Requests"}].map(t=><button className={marketTab===t.key?"current":""} key={t.key} onClick={()=>setMarketTab(t.key)}>{t.name}</button>)}</div>
+            <div className="search-input market-search"><Search size={16}/><input placeholder="Search equipment…" value={marketSearch} onChange={e=>setMarketSearch(e.target.value)}/></div>
+          </div>
+          <div className="market-layout"><aside className="filter-panel"><div className="filters-heading"><Filter size={16}/> Filters <button onClick={resetMarketFilters}>Reset</button></div><label>TRANSACTION TYPE<select value={marketType} onChange={e=>setMarketType(e.target.value)}><option value="all">All types</option><option value="sell">Buy / sell</option><option value="rent">Rent</option><option value="lend">Lend for free</option><option value="borrow">Borrow request</option></select></label><label>EQUIPMENT CATEGORY<select value={marketCategory} onChange={e=>setMarketCategory(e.target.value)}><option value="all">All categories</option>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></label><label>LOCATION<input placeholder="City or region" value={marketLocation} onChange={e=>setMarketLocation(e.target.value)}/></label><label>MAX. PRICE (€)<input type="number" min="0" placeholder="Any price" value={marketPrice} onChange={e=>setMarketPrice(e.target.value)}/></label><label className="filter-checkbox"><input type="checkbox" checked={marketAvailable} onChange={e=>setMarketAvailable(e.target.checked)}/> Available / flexible now</label></aside>
           <div className="market-results"><div className="market-results-head"><div><strong>{marketplace.length} {marketplace.length===1?"result":"results"}</strong><span>Offers and requests in one place</span></div><span className="table-mode"><List size={16}/> List view</span></div><div className="market-header"><span>EQUIPMENT / REQUEST</span><span>TYPE</span><span>LOCATION</span><span>TERMS</span></div>{marketplace.map(m=><div className="market-row" key={m.id}><div className="market-name"><span className={"market-type-icon "+(m.direction==="request"?"wanted":"")}><Package size={19}/></span><div><strong>{m.title}</strong><span>{m.category} · {m.source}{m.demo&&<em className="sample-tag">SAMPLE</em>}</span></div></div><div><span className={"market-label "+(m.direction==="request"?"wanted":"")}>{marketLabel(m)}</span></div><span className="market-city"><MapPin size={13}/>{m.location}</span><div className="market-end"><strong>{m.direction==="request"?"—":m.type==="sell"?"€"+m.price:m.type==="rent"?"€"+m.price+"/day":"Free"}</strong><button className="market-open" aria-label={"Open "+m.title} onClick={()=>m.demo?notify("This is illustrative sample data, not an active public request or offer."):notify("This draft exists only in this browser. Online messaging is not connected yet.")}><ArrowUpRight size={17}/></button></div></div>)}{marketplace.length===0&&<div className="empty-state"><h3>No matching results</h3><p>Try removing a filter or post an equipment request.</p><button className="secondary-button" onClick={()=>{resetMarketFilters();setMarketTab("all");}}>Clear filters</button></div>}</div></div>
           <div className="market-footnote"><ShieldCheck size={17}/> Lending, renting and selling use different terms. Insurance, payment processing and identity verification are not implemented in this prototype.</div>
         </div>}
+
+        {page==="lab"&&<LabPage notify={notify}/>}
       </main>
     </div>
-    {!store.setupComplete&&<Onboarding state={store} onComplete={changes=>setStore(s=>({...s,...changes,setupComplete:true}))} onAdd={()=>openAdd()}/>}
-    {modal?.type==="add"&&<Modal title="Add equipment" subtitle="Register what you physically own. Each copy gets its own record." onClose={()=>setModal(null)}><form className="form-grid" onSubmit={addItem}><label className="full">Equipment model / name<input required autoFocus value={itemForm.name} onChange={e=>setItemForm(f=>({...f,name:e.target.value}))} list="suggested-models" placeholder="e.g. Shure SM58"/><datalist id="suggested-models">{products.map(p=><option value={p.name} key={p.id}/>)}</datalist></label><label>Brand<input value={itemForm.brand} onChange={e=>setItemForm(f=>({...f,brand:e.target.value}))} placeholder="e.g. Shure"/></label><label>Category<select value={itemForm.category} onChange={e=>setItemForm(f=>({...f,category:e.target.value}))}>{["Microphones","Audio interfaces","Monitors","Controllers","Headphones","Instruments","Accessories","Other"].map(c=><option key={c}>{c}</option>)}</select></label><label>Physical location<select value={itemForm.location} onChange={e=>setItemForm(f=>({...f,location:e.target.value}))}><option value="">No location yet</option>{store.locations.map(c=><option key={c}>{c}</option>)}</select></label><label>Condition<select value={itemForm.condition} onChange={e=>setItemForm(f=>({...f,condition:e.target.value}))}>{["New","Excellent","Good","Fair","Needs repair"].map(c=><option key={c}>{c}</option>)}</select></label><label>Quantity<input type="number" min="1" max="30" value={itemForm.quantity} onChange={e=>setItemForm(f=>({...f,quantity:e.target.value}))}/></label><label>Serial number <span>optional, for 1 item</span><input value={itemForm.serial} disabled={Number(itemForm.quantity)>1} onChange={e=>setItemForm(f=>({...f,serial:e.target.value}))} placeholder="Serial number"/></label><div className="form-note full"><Info size={16}/>{Number(itemForm.quantity)>1?"We'll create "+itemForm.quantity+" separate item records, not one combined item.":"This item stays private until you explicitly create a marketplace offer."}</div><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit"><Plus size={16}/> Save equipment</button></div></form></Modal>}
-    {modal?.type==="offer"&&<Modal title="Offer equipment" subtitle="Pick an item from My Studio, or describe one here. Its inventory record stays private." onClose={()=>setModal(null)}><form className="form-grid" onSubmit={createOffer}><label className="full">Equipment<select required value={offerForm.itemId} onChange={e=>setOfferForm(f=>({...f,itemId:e.target.value}))}>{activeItems.map(i=><option key={i.id} value={i.id}>{i.name} · {i.location||"No location"} · {i.id.slice(-5)}</option>)}<option value="__new">+ Something not in My Studio yet…</option></select></label>{offerForm.itemId==="__new"&&<><label className="full">Equipment model / name<input required autoFocus value={offerForm.newName} onChange={e=>setOfferForm(f=>({...f,newName:e.target.value}))} list="suggested-models" placeholder="e.g. Shure SM58"/><datalist id="suggested-models">{products.map(p=><option value={p.name} key={p.id}/>)}</datalist></label><label>Brand<input value={offerForm.newBrand} onChange={e=>setOfferForm(f=>({...f,newBrand:e.target.value}))} placeholder="e.g. Shure"/></label><label>Category<select value={offerForm.newCategory} onChange={e=>setOfferForm(f=>({...f,newCategory:e.target.value}))}>{["Microphones","Audio interfaces","Monitors","Controllers","Headphones","Instruments","Accessories","Other"].map(c=><option key={c}>{c}</option>)}</select></label></>}<label className="full">Transaction<select value={offerForm.type} onChange={e=>setOfferForm(f=>({...f,type:e.target.value}))}><option value="rent">Rent out (paid, return expected)</option><option value="lend">Lend (free, return expected)</option><option value="sell">Sell (ownership transfer)</option></select></label>{offerForm.type!=="lend"&&<label>Price (€) {offerForm.type==="rent"?"per day":""}<input required min="0" type="number" value={offerForm.price} onChange={e=>setOfferForm(f=>({...f,price:e.target.value}))} placeholder="0"/></label>}<label>Location<input value={offerForm.location} onChange={e=>setOfferForm(f=>({...f,location:e.target.value}))} placeholder="City or region"/></label><label className="full">Availability<select value={offerForm.availability} onChange={e=>setOfferForm(f=>({...f,availability:e.target.value}))}><option>Available</option><option>Flexible</option><option>By request</option></select></label><div className="form-note full"><Info size={16}/>{offerForm.itemId==="__new"?"This also adds the item to your private My Studio inventory, so you never enter it twice. Local draft only: nothing is published.":"This creates a local draft only. Online bookings, payments, deposits and insurance are not enabled."}</div><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit">Save offer draft <ArrowRight size={16}/></button></div></form></Modal>}
-    {modal?.type==="request"&&<Modal title="Post an equipment request" subtitle="Looking to borrow, buy or rent something? Start with a simple request." onClose={()=>setModal(null)}><form className="form-grid" onSubmit={createRequest}><label className="full">What equipment do you need?<input required autoFocus placeholder="e.g. Two condenser microphones" value={requestForm.title} onChange={e=>setRequestForm(f=>({...f,title:e.target.value}))}/></label><label>Category<select value={requestForm.category} onChange={e=>setRequestForm(f=>({...f,category:e.target.value}))}>{["Microphones","Audio interfaces","Monitors","Controllers","Headphones","Instruments","Accessories","Other"].map(c=><option key={c}>{c}</option>)}</select></label><label>Request type<select value={requestForm.type} onChange={e=>setRequestForm(f=>({...f,type:e.target.value}))}><option value="borrow">Borrow for free</option><option value="rent">Looking to rent</option><option value="sell">Looking to buy</option></select></label><label className="full">Location<input placeholder="City or region" value={requestForm.location} onChange={e=>setRequestForm(f=>({...f,location:e.target.value}))}/></label><div className="form-note full"><Info size={16}/>Saved in your browser only. Publishing to other people requires a backend.</div><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button type="submit" className="primary-button">Save request draft <ArrowRight size={16}/></button></div></form></Modal>}
-    {modal?.type==="location"&&<Modal title={modal.rename?"Rename location":"New location"} subtitle={modal.rename?"Equipment in this location moves with the new name.":"A shelf, cupboard, rack or another storage space."} onClose={()=>setModal(null)}><form onSubmit={saveLocation} className="form-grid"><label className="full">Location name<input autoFocus name="locationName" required defaultValue={modal.rename||""} placeholder="e.g. Guitar wall, Flight cases, Living room"/></label><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit">{modal.rename?"Save name":"Add location"}</button></div></form></Modal>}
-    {selectedItem&&<div className="drawer-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSelectedItem(null);}}><aside className="item-drawer"><div className="drawer-top"><span className="overline">PHYSICAL EQUIPMENT ITEM</span><button className="icon-button" onClick={()=>setSelectedItem(null)} aria-label="Close item"><X size={20}/></button></div><div className="drawer-art"><ProductArt kind={products.find(p=>p.name===selectedItem.name)?.icon||"mic"} accent="blue"/></div><h2>{selectedItem.name}</h2><p>{selectedItem.brand||selectedItem.category}</p><span className="id-tag">{selectedItem.id}</span><div className="drawer-fields"><label>Location<select value={store.items.find(i=>i.id===selectedItem.id)?.location??""} onChange={e=>updateItem(selectedItem.id,{location:e.target.value})}><option value="">No location</option>{store.locations.map(l=><option key={l}>{l}</option>)}</select></label><label>Condition<select value={store.items.find(i=>i.id===selectedItem.id)?.condition||selectedItem.condition} onChange={e=>updateItem(selectedItem.id,{condition:e.target.value})}>{["New","Excellent","Good","Fair","Needs repair"].map(x=><option key={x}>{x}</option>)}</select></label><label>Status<select value={store.items.find(i=>i.id===selectedItem.id)?.status||selectedItem.status} onChange={e=>updateItem(selectedItem.id,{status:e.target.value})}>{["Available","In use","Lent out","Rented out","In repair","Sold"].map(x=><option key={x}>{x}</option>)}</select></label><label>Serial number<input placeholder="Optional" defaultValue={selectedItem.serial} onBlur={e=>updateItem(selectedItem.id,{serial:e.target.value})}/></label></div><div className="drawer-actions"><button className="primary-button wide" onClick={()=>{const id=selectedItem.id;setSelectedItem(null);openOffer(id);}}><ShoppingBag size={16}/> Sell, rent or lend this item</button><button className="secondary-button wide" onClick={()=>{if(window.confirm("Remove this physical item from My Studio?"))deleteItem(selectedItem.id);}}><Trash2 size={16}/> Remove item</button></div><p className="drawer-hint"><ShieldCheck size={15}/> Private inventory record. Listing it requires an explicit offer.</p></aside></div>}
+    {!store.setupComplete&&<Onboarding state={{...store,studioName:studios[0].name}} onComplete={changes=>setStore(s=>({...s,...changes,studios:s.studios.map((st,i)=>i===0?{...st,name:changes.studioName}:st),setupComplete:true}))} onAdd={()=>openAdd()}/>}
+    {modal?.type==="add"&&<Modal title="Add equipment" subtitle={"Register what you physically own in "+studio.name+". Each copy gets its own record."} onClose={()=>setModal(null)}><form className="form-grid" onSubmit={addItem}><label className="full">Equipment model / name<input required autoFocus value={itemForm.name} onChange={e=>setItemForm(f=>({...f,name:e.target.value}))} list="suggested-models" placeholder="e.g. Shure SM58"/><datalist id="suggested-models">{products.map(p=><option value={p.name} key={p.id}/>)}</datalist></label><label>Brand<input value={itemForm.brand} onChange={e=>setItemForm(f=>({...f,brand:e.target.value}))} placeholder="e.g. Shure"/></label><label>Category<select value={itemForm.category} onChange={e=>setItemForm(f=>({...f,category:e.target.value}))}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></label><label>Physical location<select value={itemForm.location} onChange={e=>setItemForm(f=>({...f,location:e.target.value}))}><option value="">No location yet</option>{locations.map(c=><option key={c}>{c}</option>)}</select></label><label>Condition<select value={itemForm.condition} onChange={e=>setItemForm(f=>({...f,condition:e.target.value}))}>{["New","Excellent","Good","Fair","Needs repair"].map(c=><option key={c}>{c}</option>)}</select></label><label>Quantity<input type="number" min="1" max="30" value={itemForm.quantity} onChange={e=>setItemForm(f=>({...f,quantity:e.target.value}))}/></label><label>Serial number <span>optional, for 1 item</span><input value={itemForm.serial} disabled={Number(itemForm.quantity)>1} onChange={e=>setItemForm(f=>({...f,serial:e.target.value}))} placeholder="Serial number"/></label><div className="form-note full"><Info size={16}/>{Number(itemForm.quantity)>1?"We'll create "+itemForm.quantity+" separate item records, not one combined item.":"This item stays private until you explicitly create a marketplace offer."}</div><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit"><Plus size={16}/> Save equipment</button></div></form></Modal>}
+    {modal?.type==="offer"&&<Modal title="Offer equipment" subtitle="Pick an item from My Studio, or describe one here. Its inventory record stays private." onClose={()=>setModal(null)}><form className="form-grid" onSubmit={createOffer}><label className="full">Equipment<select required value={offerForm.itemId} onChange={e=>setOfferForm(f=>({...f,itemId:e.target.value}))}>{allActive.map(i=><option key={i.id} value={i.id}>{i.name} · {i.location||"No location"}{studios.length>1?" · "+(studios.find(s=>s.id===i.studioId)?.name||""):""} · {i.id.slice(-5)}</option>)}<option value="__new">+ Something not in My Studio yet…</option></select></label>{offerForm.itemId==="__new"&&<><label className="full">Equipment model / name<input required autoFocus value={offerForm.newName} onChange={e=>setOfferForm(f=>({...f,newName:e.target.value}))} list="suggested-models" placeholder="e.g. Shure SM58"/><datalist id="suggested-models">{products.map(p=><option value={p.name} key={p.id}/>)}</datalist></label><label>Brand<input value={offerForm.newBrand} onChange={e=>setOfferForm(f=>({...f,newBrand:e.target.value}))} placeholder="e.g. Shure"/></label><label>Category<select value={offerForm.newCategory} onChange={e=>setOfferForm(f=>({...f,newCategory:e.target.value}))}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></label></>}<label className="full">Transaction<select value={offerForm.type} onChange={e=>setOfferForm(f=>({...f,type:e.target.value}))}><option value="rent">Rent out (paid, return expected)</option><option value="lend">Lend (free, return expected)</option><option value="sell">Sell (ownership transfer)</option></select></label>{offerForm.type!=="lend"&&<label>Price (€) {offerForm.type==="rent"?"per day":""}<input required min="0" type="number" value={offerForm.price} onChange={e=>setOfferForm(f=>({...f,price:e.target.value}))} placeholder="0"/></label>}<label>Location<input value={offerForm.location} onChange={e=>setOfferForm(f=>({...f,location:e.target.value}))} placeholder="City or region"/></label><label className="full">Availability<select value={offerForm.availability} onChange={e=>setOfferForm(f=>({...f,availability:e.target.value}))}><option>Available</option><option>Flexible</option><option>By request</option></select></label><div className="form-note full"><Info size={16}/>{offerForm.itemId==="__new"?"This also adds the item to your private My Studio inventory, so you never enter it twice. Local draft only: nothing is published.":"This creates a local draft only. Online bookings, payments, deposits and insurance are not enabled."}</div><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit">Save offer draft <ArrowRight size={16}/></button></div></form></Modal>}
+    {modal?.type==="request"&&<Modal title="Post an equipment request" subtitle="Looking to borrow, buy or rent something? Start with a simple request." onClose={()=>setModal(null)}><form className="form-grid" onSubmit={createRequest}><label className="full">What equipment do you need?<input required autoFocus placeholder="e.g. Two condenser microphones" value={requestForm.title} onChange={e=>setRequestForm(f=>({...f,title:e.target.value}))}/></label><label>Category<select value={requestForm.category} onChange={e=>setRequestForm(f=>({...f,category:e.target.value}))}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></label><label>Request type<select value={requestForm.type} onChange={e=>setRequestForm(f=>({...f,type:e.target.value}))}><option value="borrow">Borrow for free</option><option value="rent">Looking to rent</option><option value="sell">Looking to buy</option></select></label><label className="full">Location<input placeholder="City or region" value={requestForm.location} onChange={e=>setRequestForm(f=>({...f,location:e.target.value}))}/></label><div className="form-note full"><Info size={16}/>Saved in your browser only. Publishing to other people requires a backend.</div><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button type="submit" className="primary-button">Save request draft <ArrowRight size={16}/></button></div></form></Modal>}
+    {modal?.type==="location"&&<Modal title={modal.rename?"Rename location":"New location"} subtitle={modal.rename?"Equipment in this location moves with the new name.":"A shelf, cupboard, rack or another storage space in "+studio.name+"."} onClose={()=>setModal(null)}><form onSubmit={saveLocation} className="form-grid"><label className="full">Location name<input autoFocus name="locationName" required defaultValue={modal.rename||""} placeholder="e.g. Guitar wall, Flight cases, Living room"/></label><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit">{modal.rename?"Save name":"Add location"}</button></div></form></Modal>}
+    {modal?.type==="studio"&&<Modal title={modal.rename?"Rename studio":"New studio"} subtitle={modal.rename?"This is the title of your studio page.":"A separate space with its own rooms and equipment, such as a second home studio or a rehearsal room."} onClose={()=>setModal(null)}><form onSubmit={saveStudio} className="form-grid"><label className="full">Studio name<input autoFocus name="studioName" required defaultValue={modal.rename?studio.name:"Studio "+(studios.length+1)} placeholder="e.g. Studio 2, Rehearsal room"/></label><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit">{modal.rename?"Save name":"Create studio"}</button></div></form></Modal>}
+    {selectedItem&&<div className="drawer-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSelectedItem(null);}}><aside className="item-drawer"><div className="drawer-top"><span className="overline">PHYSICAL EQUIPMENT ITEM</span><button className="icon-button" onClick={()=>setSelectedItem(null)} aria-label="Close item"><X size={20}/></button></div><div className="drawer-art"><ProductArt kind={products.find(p=>p.name===selectedItem.name)?.icon||"mic"} accent="blue"/></div><h2>{selectedItem.name}</h2><p>{selectedItem.brand||selectedItem.category}</p><span className="id-tag">{selectedItem.id}</span><div className="drawer-fields"><label>Location<select value={store.items.find(i=>i.id===selectedItem.id)?.location??""} onChange={e=>updateItem(selectedItem.id,{location:e.target.value})}><option value="">No location</option>{(studios.find(s=>s.id===selectedItem.studioId)||studio).locations.map(l=><option key={l}>{l}</option>)}</select></label><label>Condition<select value={store.items.find(i=>i.id===selectedItem.id)?.condition||selectedItem.condition} onChange={e=>updateItem(selectedItem.id,{condition:e.target.value})}>{["New","Excellent","Good","Fair","Needs repair"].map(x=><option key={x}>{x}</option>)}</select></label><label>Status<select value={store.items.find(i=>i.id===selectedItem.id)?.status||selectedItem.status} onChange={e=>updateItem(selectedItem.id,{status:e.target.value})}>{["Available","In use","Lent out","Rented out","In repair","Sold"].map(x=><option key={x}>{x}</option>)}</select></label><label>Serial number<input placeholder="Optional" defaultValue={selectedItem.serial} onBlur={e=>updateItem(selectedItem.id,{serial:e.target.value})}/></label></div><div className="drawer-actions"><button className="primary-button wide" onClick={()=>{const id=selectedItem.id;setSelectedItem(null);openOffer(id);}}><ShoppingBag size={16}/> Sell, rent or lend this item</button><button className="secondary-button wide" onClick={()=>{if(window.confirm("Remove this physical item from My Studio?"))deleteItem(selectedItem.id);}}><Trash2 size={16}/> Remove item</button></div><p className="drawer-hint"><ShieldCheck size={15}/> Private inventory record. Listing it requires an explicit offer.</p></aside></div>}
     {toast&&<div className="toast" role="status"><CheckCircle2 size={18}/>{toast}<button onClick={()=>setToast("")} aria-label="Dismiss"><X size={15}/></button></div>}
   </div>;
 }
