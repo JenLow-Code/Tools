@@ -154,6 +154,7 @@ function Onboarding({state,onComplete,onAdd}) {
 function App() {
   const [store,setStore]=useState(readStore);
   const [page,setPage]=useState("studio");
+  const [studioOpen,setStudioOpen]=useState(false);
   const [activeLocation,setActiveLocation]=useState("All locations");
   const [itemSearch,setItemSearch]=useState("");
   const [modal,setModal]=useState(null);
@@ -232,9 +233,9 @@ function App() {
   return <div className="app-shell">
     <div className="app-main">
       <header className="topbar">
-        <a className="premium-logo" href="#" onClick={e=>{e.preventDefault();setPage("studio");}} aria-label="JenLow Tools Home"><span>jenlow</span><b>tools<span className="logo-stop">.</span></b></a>
+        <a className="premium-logo" href="#" onClick={e=>{e.preventDefault();setPage("studio");setStudioOpen(false);}} aria-label="JenLow Tools Home"><span>jenlow</span><b>tools<span className="logo-stop">.</span></b></a>
         <nav className="premium-nav" aria-label="Tools navigation">
-          {[{key:"studio",label:"My Studio"},{key:"explore",label:"Explore"},{key:"market",label:"Marketplace"}].map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>setPage(n.key)}>{n.label}</button>)}
+          {[{key:"studio",label:"My Studio"},{key:"explore",label:"Explore"},{key:"market",label:"Marketplace"}].map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>{setPage(n.key);if(n.key==="studio")setStudioOpen(false);}}>{n.label}</button>)}
         </nav>
         <div className="premium-header-actions">
           <button className="premium-icon" title="Add equipment" onClick={()=>openAdd()} aria-label="Add equipment"><Plus size={19}/></button>
@@ -245,7 +246,7 @@ function App() {
       </header>
       <main className="main-content">
         {page==="studio"&&<div className="page-studio">
-          <section className="premium-studio-hero">
+          {!studioOpen&&<><section className="premium-studio-hero" role="button" tabIndex={0} aria-label={"Open "+store.studioName} onClick={()=>setStudioOpen(true)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setStudioOpen(true);}}}>
             <div className="hero-photography" aria-hidden="true"/>
             <div className="hero-shade" aria-hidden="true"/>
             <div className="hero-content">
@@ -255,13 +256,20 @@ function App() {
                 <h1>{store.studioName}</h1>
                 <p>{activeItems.length} {activeItems.length===1?"item":"items"} across {store.locations.length} locations. Everything you own, in its place.</p>
                 <div className="hero-buttons">
-                  <button className="hero-primary" onClick={()=>openAdd()}>Add equipment <ArrowUpRight size={19}/></button>
-                  <button className="hero-secondary" onClick={()=>{setPage("explore");setExploreTab("recommended");}}>Explore gear <ArrowRight size={18}/></button>
+                  <button className="hero-primary" onClick={e=>{e.stopPropagation();setStudioOpen(true);}}>Open my studio <ArrowUpRight size={19}/></button>
+                  <button className="hero-secondary" onClick={e=>{e.stopPropagation();openAdd();}}>Add equipment <ArrowRight size={18}/></button>
                 </div>
               </div>
-              <div className="hero-bottomline"><span>STUDIO 01 <i/> {store.studioName}</span><span>SCROLL FOR YOUR WORKSPACE <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
+              <div className="hero-bottomline"><span>STUDIO 01 <i/> {store.studioName}</span><span>CLICK TO OPEN · SCROLL FOR OTHER STUDIOS <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
             </div>
           </section>
+          <section className="other-studios">
+            <div className="other-studios-head"><div><span className="premium-small-caps">DISCOVER</span><h2>Other studios</h2><p>Studios with similar features. Sample entries only: no real studios are listed yet.</p></div></div>
+            <div className="studio-cards">{otherStudios.map(o=><button key={o.id} className="studio-card" onClick={()=>notify("Sample studio: illustrative only. Studio pages and booking are not built yet.")}><div className="studio-card-art"><span className="sample-tag">SAMPLE</span>{o.kind.toUpperCase()}</div><h3>{o.name}</h3><p>{o.place} · {o.terms}</p><div className="studio-tags">{o.tags.map(t=><span key={t}>{t}</span>)}</div></button>)}</div>
+          </section>
+          </>}
+          {studioOpen&&<>
+          <button className="studio-back" onClick={()=>setStudioOpen(false)}><ArrowLeft size={15}/> All studios</button>
           <section className="studio-head">
             <div>
               <span className="premium-small-caps">YOUR WORKSPACE</span>
@@ -288,10 +296,7 @@ function App() {
             </section>
           </div>
           <div className="studio-bottom"><div className="small-feature"><span><Sparkles size={19}/></span><div><strong>Explore your next upgrade</strong><p>Browse the sample catalogue and compare products.</p><button onClick={()=>{setPage("explore");setExploreTab("recommended");}}>Explore equipment <ArrowRight size={15}/></button></div></div><div className="small-feature"><span><ShoppingBag size={19}/></span><div><strong>Make the most of your gear</strong><p>Draft a sale, rental or free loan from an inventory item.</p><button onClick={()=>openOffer()}>Create an offer <ArrowRight size={15}/></button></div></div></div>
-          <section className="other-studios">
-            <div className="other-studios-head"><div><span className="premium-small-caps">DISCOVER</span><h2>Other studios</h2><p>Studios with similar features. Sample entries only: no real studios are listed yet.</p></div></div>
-            <div className="studio-cards">{otherStudios.map(o=><button key={o.id} className="studio-card" onClick={()=>notify("Sample studio: illustrative only. Studio pages and booking are not built yet.")}><div className="studio-card-art"><span className="sample-tag">SAMPLE</span>{o.kind.toUpperCase()}</div><h3>{o.name}</h3><p>{o.place} · {o.terms}</p><div className="studio-tags">{o.tags.map(t=><span key={t}>{t}</span>)}</div></button>)}</div>
-          </section>
+          </>}
         </div>}
         {page==="explore"&&<div className="page-explore">
           <section className="premium-explore-hero">
