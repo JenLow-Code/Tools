@@ -32,6 +32,11 @@ const newsSamples = [
   {eyebrow:"EQUIPMENT CARE", title:"Build a reliable maintenance checklist", description:"Keep your inventory records useful long after the first setup.", icon:"mic"}
 ];
 const SLOTS = [{left:"40%",top:"67%"},{left:"74%",top:"44%"},{left:"82%",top:"75%"},{left:"14%",top:"75%"}];
+const otherStudios = [
+  {id:"os1", name:"Studio Léman", place:"Geneva", kind:"Home recording studio", tags:["Vocal booth","Audio interface","2 monitors"], terms:"Free lending"},
+  {id:"os2", name:"La Petite Salle", place:"Annecy", kind:"Rehearsal room", tags:["Drum kit","PA system","Amps"], terms:"Rental"},
+  {id:"os3", name:"Atelier Sonore", place:"Lyon", kind:"Podcast studio", tags:["4 microphones","Mixer","Acoustic treatment"], terms:"Rental"}
+];
 const PAGE_TITLES = {studio:"My Studio", explore:"Explore", market:"Marketplace"};
 const marketLabel = (m) => m.direction==="request"
   ? ({borrow:"Wants to borrow", lend:"Wants to borrow", rent:"Wants to rent", sell:"Wants to buy"}[m.type] || "Wanted")
@@ -240,10 +245,27 @@ function App() {
       </header>
       <main className="main-content">
         {page==="studio"&&<div className="page-studio">
+          <section className="premium-studio-hero">
+            <div className="hero-photography" aria-hidden="true"/>
+            <div className="hero-shade" aria-hidden="true"/>
+            <div className="hero-content">
+              <div className="hero-topline"><span className="hero-kicker">JENLOW TOOLS / YOUR STUDIO</span><span className="hero-topline-right"><span className="hero-indicator"/> PRIVATE STUDIO</span></div>
+              <div className="hero-center">
+                <span className="hero-pretitle">MY STUDIO</span>
+                <h1>{store.studioName}</h1>
+                <p>{activeItems.length} {activeItems.length===1?"item":"items"} across {store.locations.length} locations. Everything you own, in its place.</p>
+                <div className="hero-buttons">
+                  <button className="hero-primary" onClick={()=>openAdd()}>Add equipment <ArrowUpRight size={19}/></button>
+                  <button className="hero-secondary" onClick={()=>{setPage("explore");setExploreTab("recommended");}}>Explore gear <ArrowRight size={18}/></button>
+                </div>
+              </div>
+              <div className="hero-bottomline"><span>STUDIO 01 <i/> {store.studioName}</span><span>SCROLL FOR YOUR WORKSPACE <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
+            </div>
+          </section>
           <section className="studio-head">
             <div>
-              <span className="premium-small-caps">MY STUDIO</span>
-              <h1>{store.studioName}</h1>
+              <span className="premium-small-caps">YOUR WORKSPACE</span>
+              <h2>The room and its equipment</h2>
               <p className="studio-summary"><strong>{activeItems.length}</strong> {activeItems.length===1?"item":"items"}<i/><strong>{store.locations.length}</strong> locations<i/><strong>{availableCount}</strong> available<i/>private by default</p>
             </div>
             <div className="heading-buttons"><button className="secondary-button" onClick={exportCSV}><Download size={16}/> Export CSV</button><button className="primary-button" onClick={()=>openAdd()}><Plus size={17}/> Add equipment</button></div>
@@ -266,6 +288,10 @@ function App() {
             </section>
           </div>
           <div className="studio-bottom"><div className="small-feature"><span><Sparkles size={19}/></span><div><strong>Explore your next upgrade</strong><p>Browse the sample catalogue and compare products.</p><button onClick={()=>{setPage("explore");setExploreTab("recommended");}}>Explore equipment <ArrowRight size={15}/></button></div></div><div className="small-feature"><span><ShoppingBag size={19}/></span><div><strong>Make the most of your gear</strong><p>Draft a sale, rental or free loan from an inventory item.</p><button onClick={()=>openOffer()}>Create an offer <ArrowRight size={15}/></button></div></div></div>
+          <section className="other-studios">
+            <div className="other-studios-head"><div><span className="premium-small-caps">DISCOVER</span><h2>Other studios</h2><p>Studios with similar features. Sample entries only: no real studios are listed yet.</p></div></div>
+            <div className="studio-cards">{otherStudios.map(o=><button key={o.id} className="studio-card" onClick={()=>notify("Sample studio: illustrative only. Studio pages and booking are not built yet.")}><div className="studio-card-art"><span className="sample-tag">SAMPLE</span>{o.kind.toUpperCase()}</div><h3>{o.name}</h3><p>{o.place} · {o.terms}</p><div className="studio-tags">{o.tags.map(t=><span key={t}>{t}</span>)}</div></button>)}</div>
+          </section>
         </div>}
         {page==="explore"&&<div className="page-explore">
           <section className="premium-explore-hero">
