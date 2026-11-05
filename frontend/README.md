@@ -4,9 +4,9 @@
 Desktop-first independent application. Thin horizontal navigation, large intentional typography,
 minimal cards and borders, and a professional equipment inventory.
 
-**Five tabs, each with a hero:** My Studio, Equipment, News, Gear Exchange and Lab.
-(Lab is a working name for the tools section; it may be renamed to Tools later.)
-Equipment and News have full-height heroes; Gear Exchange and Lab use a shorter one so the
+**Five tabs, each with a hero:** My Studio, Equipment, News, Gear Exchange and Tools.
+("Tools" is the working name for the tools section; Gear Exchange is also a working name.)
+Equipment and News have full-height heroes; Gear Exchange and Tools use a shorter one so the
 content starts sooner. My Studio's hero is the entrance to a studio; its workspace opens on click.
 The 2D example room and all product catalogue content are illustrative prototypes.
 
@@ -22,7 +22,7 @@ Build check:
 
 ## Interactive features
 
-- **My Studio:** vertical rail to switch between your studios (add / rename). Each studio has
+- **My Studio:** studio chapters on the hero to switch between your studios (add / rename). Each studio has
   its own rooms and equipment. A studio's page is a hero; click it to open the workspace (2D
   sample room + equipment list side by side). Below the hero: sample "Other studios".
 - Individual equipment records, including distinct records for multiple identical microphones.
@@ -31,13 +31,13 @@ Build check:
 - **Equipment:** hero search and category shortcuts, one catalogue with category filter,
   saved view and an early "Fits my setup" filter (it only shows categories you don't own yet;
   real compatibility checks are not built), plus an elementary comparison.
-- **News:** reviews (with a translation / show-original toggle, interface idea only), new
+- **News:** a carousel on top (latest review, release alert, upcoming event), then reviews (with a translation / show-original toggle, interface idea only), new
   release alerts and upcoming events. All sample content.
 - **Gear Exchange:** All / Offers / Requests with filters and quick search; requests show what
   they want (borrow, rent, buy); sample entries are tagged SAMPLE.
 - Sell/rent/lend offer drafts from an owned item, or from Gear Exchange for gear not yet
   registered (this creates the private My Studio record automatically).
-- **Lab:** list of planned tools with how each would work, plus a planned-membership section.
+- **Tools:** the planned membership sits in the hero; below it, a list of planned tools with how each would work.
   Nothing there is built.
 - Local equipment request drafts.
 
@@ -48,7 +48,7 @@ Network requests, no bookings, insurance, payments, identity verification, notif
 or multi-device synchronization.** Sample marketplace entries and sample news are explicitly
 fictional. Current product data and comparisons are illustrative rather than verified.
 The virtual studio room is an SVG illustration; no custom photo, 3D engine or real
-acoustic simulation is involved. The Equipment and My Studio heroes and the onboarding panel use third-party photos; the News, Gear Exchange and Lab heroes are plain gradients. The photos use third-party
+acoustic simulation is involved. The Equipment and My Studio heroes and the onboarding panel use third-party photos; the News, Gear Exchange and Tools heroes are plain gradients. The photos use third-party
 photographic backgrounds that require an internet connection and are design placeholders.
 The first four locations of a studio occupy the four hotspots of the sample room (even if renamed);
 additional locations appear in the list and chips but not on the illustration.

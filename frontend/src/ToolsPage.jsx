@@ -5,17 +5,18 @@ import { labTools } from "./data.js";
 
 const ICONS = {phone: Smartphone, split: Scissors, music: Music, qr: QrCode};
 
-export default function LabPage({notify}) {
-  return <div className="page-lab">
+export default function ToolsPage({notify}) {
+  return <div className="page-tools">
     <PageHero
-      kicker="JENLOW TOOLS / LAB" title="Built to make" accent="production easier."
-      text="A growing set of small tools for the way you work. Planned as one membership instead of paying per tool."
-      foot={["TOOLS FOR PRODUCTION", "MEMBERSHIP PLANNED"]}
+      kicker="MEMBERSHIP · PLANNED" title="One membership," accent="all the tools."
+      text="The idea: instead of buying each tool separately, members get access to every tool as the set grows. Whether that is a subscription, a one-time fee or something else is still open."
+      foot={["SMALL TOOLS FOR PRODUCTION", "NOT AVAILABLE YET"]}
       variant="lab" short
     >
       <div className="hero-buttons"><button className="hero-primary" onClick={() => notify("Membership is not available yet. This is a prototype.")}>Join the waiting list</button></div>
     </PageHero>
     <div className="market-info"><Info size={16}/><span>None of these tools exist yet. This page shows what each one would do and how it would work, so we can decide what to build first. Membership details and pricing are not decided.</span></div>
+    <div className="tools-intro"><h2>Built to make production easier.</h2><p>A growing set of small tools for the way you work.</p></div>
     <div className="lab-grid">{labTools.map(t => {
       const Icon = ICONS[t.icon] || Music;
       return <article className="lab-card" key={t.id}>
@@ -27,10 +28,5 @@ export default function LabPage({notify}) {
         <div className="lab-foot"><Lock size={14}/> Part of the planned membership</div>
       </article>;
     })}</div>
-    <section className="lab-membership">
-      <span className="premium-small-caps">MEMBERSHIP · PLANNED</span>
-      <h2>One membership, all the tools.</h2>
-      <p>The idea: instead of buying each tool separately, members get access to the whole Lab as it grows. Whether that is a subscription, a one-time fee or something else is still open.</p>
-    </section>
   </div>;
 }

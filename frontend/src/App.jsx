@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
-  ArrowLeft, ArrowRight, ArrowUpRight, AudioLines, Bell, Check, CheckCircle2,
+  ArrowLeft, ArrowRight, ArrowUpRight, Bell, Check, CheckCircle2,
   ChevronRight, Download, Filter, GitCompareArrows, Heart, Home, Info, Layers3,
-  LayoutGrid, List, MapPin, Mic2, Package, Pencil, Plus, Search, ShieldCheck,
+  LayoutGrid, MapPin, Mic2, Package, Pencil, Plus, Search, ShieldCheck,
   ShoppingBag, SlidersHorizontal, Sparkles, Trash2, X
 } from "lucide-react";
 import PageHero from "./PageHero.jsx";
 import NewsPage from "./NewsPage.jsx";
-import LabPage from "./LabPage.jsx";
+import ToolsPage from "./ToolsPage.jsx";
 import { demoMarket, otherStudios, products } from "./data.js";
 import "./styles.css";
 
@@ -24,7 +24,7 @@ const NAV = [
   {key:"equipment", label:"Equipment"},
   {key:"news", label:"News"},
   {key:"market", label:"Gear Exchange"},
-  {key:"lab", label:"Lab"}
+  {key:"tools", label:"Tools"}
 ];
 const CATEGORIES = ["Microphones","Audio interfaces","Monitors","Controllers","Headphones","Instruments","Accessories","Other"];
 const marketLabel = (m) => m.direction==="request"
@@ -133,7 +133,7 @@ function Onboarding({state,onComplete,onAdd}) {
   const finish=()=>onComplete({purpose,daw,studioName:name.trim() || "My Home Studio"});
   return <div className="welcome-layer"><div className="welcome-card">
     <div className="welcome-visual">
-      <div className="welcome-brand"><span className="brand-mark"><AudioLines size={23}/></span> jenlow<span>tools.</span></div>
+      <div className="welcome-brand"><img className="brand-mark-img" src="/jenlow-mark.png" alt="" width="30" height="27"/> jenlow<span>tools.</span></div>
       <div className="welcome-copy"><span className="overline pale">WELCOME TO YOUR WORKSPACE</span><h1>Your equipment.<br/>Your space.<br/><em>Under control.</em></h1><p>Start with a simple studio. Make it yours as you go.</p></div>
       <div className="welcome-orbit"><div className="orbit-screen"/><div className="orbit-speaker a"/><div className="orbit-speaker b"/><div className="orbit-table"/></div>
       <div className="welcome-foot">DESKTOP-FIRST · PRIVATE BY DEFAULT</div>
@@ -196,6 +196,10 @@ function App() {
   const userOffers=store.listings.map(o=>({...o,direction:"offer",source:"My listing",demo:false}));
   const userRequests=store.requests.map(o=>({...o,direction:"request",source:"My request",demo:false}));
   const marketplace=[...userOffers,...userRequests,...demoMarket].filter(x=>(marketTab==="all"||x.direction===marketTab)&&(marketType==="all"||x.type===marketType)&&(marketCategory==="all"||x.category===marketCategory)&&(!marketLocation||x.location.toLowerCase().includes(marketLocation.toLowerCase()))&&(!marketAvailable||x.availability==="Available"||x.availability==="Flexible")&&(!marketPrice||x.direction==="request"||Number(x.price)<=Number(marketPrice))&&(!marketSearch.trim()||(x.title+" "+x.category).toLowerCase().includes(marketSearch.trim().toLowerCase())));
+  const marketAll=[...userOffers,...userRequests,...demoMarket];
+  const marketCount=(d)=>marketAll.filter(x=>d==="all"||x.direction===d).length;
+  const typeOptions=marketTab==="offer"?[["sell","Buy / sell"],["rent","Rent"],["lend","Lend for free"]]:marketTab==="request"?[["borrow","Borrow"],["rent","Rent"],["sell","Buy"]]:[["sell","Buy / sell"],["rent","Rent"],["lend","Lend for free"],["borrow","Borrow request"]];
+  const marketIntro=marketTab==="offer"?"Equipment people want to sell, rent or lend":marketTab==="request"?"What people are looking for right now":"Offers and requests in one place";
   const resetMarketFilters=()=>{setMarketType("all");setMarketCategory("all");setMarketLocation("");setMarketPrice("");setMarketAvailable(false);setMarketSearch("");};
 
   // ---- equipment catalogue ----
@@ -207,7 +211,7 @@ function App() {
   const pickCategory=(c)=>{setExploreCategory(c);setExploreTab("browse");goToList();};
 
   const notify=(s)=>setToast(s);
-  const selectStudio=(id)=>{setStudioId(id);setStudioOpen(false);setActiveLocation("All locations");setItemSearch("");};
+  const selectStudio=(id,keepOpen)=>{setStudioId(id);setStudioOpen(!!keepOpen);setActiveLocation("All locations");setItemSearch("");};
   const openAdd=(product)=>{setItemForm({name:product?.name||"",brand:product?.brand||"",category:product?.category||"Microphones",location:activeLocation==="All locations"?(locations[0]||""):activeLocation,quantity:1,serial:"",condition:"Good"});setModal({type:"add"});};
   const openOffer=(id)=>{setOfferForm({type:"rent",price:"",location:"",availability:"Available",itemId:id||activeItems[0]?.id||allActive[0]?.id||"__new",newName:"",newBrand:"",newCategory:"Microphones"});setModal({type:"offer"});};
   const addItem=(e)=>{e.preventDefault();if(!itemForm.name.trim())return;const count=Math.min(30,Math.max(1,Number(itemForm.quantity)||1));const added=Array.from({length:count},()=>({id:uid(),studioId:studio.id,name:itemForm.name.trim(),brand:itemForm.brand.trim(),category:itemForm.category,location:itemForm.location,condition:itemForm.condition,serial:count===1?itemForm.serial.trim():"",status:"Available",addedAt:new Date().toISOString()}));setStore(s=>({...s,items:[...s.items,...added]}));setModal(null);notify(count+" item"+(count>1?"s":"")+" added to "+studio.name);};
@@ -278,13 +282,7 @@ function App() {
         </div>
       </header>
       <main className="main-content">
-        {page==="studio"&&<div className="page-studio studio-layout">
-          <aside className="studio-rail" aria-label="My studios">
-            <span className="premium-small-caps">MY STUDIOS</span>
-            <nav className="studio-rail-list">{studios.map(st=><button key={st.id} className={st.id===studio.id?"active":""} onClick={()=>selectStudio(st.id)}><span className="rail-name">{st.name}</span><span className="rail-count">{store.items.filter(x=>x.studioId===st.id&&x.status!=="Sold").length}</span></button>)}</nav>
-            <button className="rail-add" onClick={()=>setModal({type:"studio"})}><Plus size={14}/> New studio</button>
-            <p className="rail-note">Each studio keeps its own rooms and equipment.</p>
-          </aside>
+        {page==="studio"&&<div className="page-studio">
           <div className="studio-main">
             {!studioOpen&&<>
               <section className="premium-studio-hero" role="button" tabIndex={0} aria-label={"Open "+studio.name} onClick={()=>setStudioOpen(true)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setStudioOpen(true);}}}>
@@ -301,6 +299,11 @@ function App() {
                       <button className="hero-secondary" onClick={e=>{e.stopPropagation();openAdd();}}>Add equipment <ArrowRight size={18}/></button>
                     </div>
                   </div>
+                  <nav className="studio-chapters" aria-label="My studios" onClick={e=>e.stopPropagation()}>
+                    <span className="chapters-title">MY STUDIOS</span>
+                    {studios.map((st,n)=><button key={st.id} className={st.id===studio.id?"active":""} aria-current={st.id===studio.id?"true":undefined} onClick={e=>{e.stopPropagation();selectStudio(st.id);}}><span className="ch-num">{String(n+1).padStart(2,"0")}</span><span className="ch-name">{st.name}</span><span className="ch-count">{store.items.filter(x=>x.studioId===st.id&&x.status!=="Sold").length}</span></button>)}
+                    <button className="ch-add" onClick={e=>{e.stopPropagation();setModal({type:"studio"});}}><Plus size={14}/> New studio</button>
+                  </nav>
                   <div className="hero-bottomline"><span>STUDIO {String(studios.indexOf(studio)+1).padStart(2,"0")} <i/> {studio.name}</span><span>CLICK TO OPEN · SCROLL FOR OTHER STUDIOS <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
                 </div>
               </section>
@@ -310,7 +313,8 @@ function App() {
               </section>
             </>}
             {studioOpen&&<>
-              <button className="studio-back" onClick={()=>setStudioOpen(false)}><ArrowLeft size={15}/> Overview</button>
+              <div className="studio-topbar"><button className="studio-back" onClick={()=>setStudioOpen(false)}><ArrowLeft size={15}/> Overview</button>
+                <div className="studio-pick" role="group" aria-label="Switch studio">{studios.map(st=><button key={st.id} className={st.id===studio.id?"active":""} onClick={()=>selectStudio(st.id,true)}>{st.name}</button>)}<button className="pick-add" onClick={()=>setModal({type:"studio"})}><Plus size={13}/> New studio</button></div></div>
               <section className="studio-head">
                 <div>
                   <span className="premium-small-caps">YOUR WORKSPACE</span>
@@ -379,15 +383,16 @@ function App() {
           </PageHero>
           <div className="market-info"><Info size={16}/><span>Prototype preview: listings marked SAMPLE (including Network request examples) are fictional, and your own drafts are saved only in this browser. No real bookings or payments.</span></div>
           <div className="market-toolbar">
-            <div className="market-tabs">{[{key:"all",name:"All"},{key:"offer",name:"Offers"},{key:"request",name:"Requests"}].map(t=><button className={marketTab===t.key?"current":""} key={t.key} onClick={()=>setMarketTab(t.key)}>{t.name}</button>)}</div>
+            <div className="market-tabs">{[{key:"all",name:"All"},{key:"offer",name:"Offers"},{key:"request",name:"Requests"}].map(t=><button className={marketTab===t.key?"current":""} key={t.key} onClick={()=>{setMarketTab(t.key);setMarketType("all");}}>{t.name} <span className="tab-count">{marketCount(t.key)}</span></button>)}</div>
             <div className="search-input market-search"><Search size={16}/><input placeholder="Search equipment…" value={marketSearch} onChange={e=>setMarketSearch(e.target.value)}/></div>
           </div>
-          <div className="market-layout"><aside className="filter-panel"><div className="filters-heading"><Filter size={16}/> Filters <button onClick={resetMarketFilters}>Reset</button></div><label>TRANSACTION TYPE<select value={marketType} onChange={e=>setMarketType(e.target.value)}><option value="all">All types</option><option value="sell">Buy / sell</option><option value="rent">Rent</option><option value="lend">Lend for free</option><option value="borrow">Borrow request</option></select></label><label>EQUIPMENT CATEGORY<select value={marketCategory} onChange={e=>setMarketCategory(e.target.value)}><option value="all">All categories</option>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></label><label>LOCATION<input placeholder="City or region" value={marketLocation} onChange={e=>setMarketLocation(e.target.value)}/></label><label>MAX. PRICE (€)<input type="number" min="0" placeholder="Any price" value={marketPrice} onChange={e=>setMarketPrice(e.target.value)}/></label><label className="filter-checkbox"><input type="checkbox" checked={marketAvailable} onChange={e=>setMarketAvailable(e.target.checked)}/> Available / flexible now</label></aside>
-          <div className="market-results"><div className="market-results-head"><div><strong>{marketplace.length} {marketplace.length===1?"result":"results"}</strong><span>Offers and requests in one place</span></div><span className="table-mode"><List size={16}/> List view</span></div><div className="market-header"><span>EQUIPMENT / REQUEST</span><span>TYPE</span><span>LOCATION</span><span>TERMS</span></div>{marketplace.map(m=><div className="market-row" key={m.id}><div className="market-name"><span className={"market-type-icon "+(m.direction==="request"?"wanted":"")}><Package size={19}/></span><div><strong>{m.title}</strong><span>{m.category} · {m.source}{m.demo&&<em className="sample-tag">SAMPLE</em>}</span></div></div><div><span className={"market-label "+(m.direction==="request"?"wanted":"")}>{marketLabel(m)}</span></div><span className="market-city"><MapPin size={13}/>{m.location}</span><div className="market-end"><strong>{m.direction==="request"?"—":m.type==="sell"?"€"+m.price:m.type==="rent"?"€"+m.price+"/day":"Free"}</strong><button className="market-open" aria-label={"Open "+m.title} onClick={()=>m.demo?notify("This is illustrative sample data, not an active public request or offer."):notify("This draft exists only in this browser. Online messaging is not connected yet.")}><ArrowUpRight size={17}/></button></div></div>)}{marketplace.length===0&&<div className="empty-state"><h3>No matching results</h3><p>Try removing a filter or post an equipment request.</p><button className="secondary-button" onClick={()=>{resetMarketFilters();setMarketTab("all");}}>Clear filters</button></div>}</div></div>
+          <div className="market-layout"><aside className="filter-panel"><div className="filters-heading"><Filter size={16}/> Filters <button onClick={resetMarketFilters}>Reset</button></div><label>TRANSACTION TYPE<select value={marketType} onChange={e=>setMarketType(e.target.value)}><option value="all">All types</option>{typeOptions.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label><label>EQUIPMENT CATEGORY<select value={marketCategory} onChange={e=>setMarketCategory(e.target.value)}><option value="all">All categories</option>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></label><label>LOCATION<input placeholder="City or region" value={marketLocation} onChange={e=>setMarketLocation(e.target.value)}/></label><label>MAX. PRICE (€)<input type="number" min="0" placeholder="Any price" value={marketPrice} onChange={e=>setMarketPrice(e.target.value)}/></label><label className="filter-checkbox"><input type="checkbox" checked={marketAvailable} onChange={e=>setMarketAvailable(e.target.checked)}/> Available / flexible now</label></aside>
+          <div className={"market-results"+(marketTab==="request"?" is-requests":"")}><div className="market-results-head"><div><strong>{marketplace.length} {marketplace.length===1?"result":"results"}</strong><span>{marketIntro}</span></div></div><div className="market-header"><span>EQUIPMENT / REQUEST</span><span>TYPE</span><span>LOCATION</span><span>TERMS</span></div>{marketplace.map(m=><div className="market-row" key={m.id}><div className="market-name"><span className={"market-type-icon "+(m.direction==="request"?"wanted":"")}><Package size={19}/></span><div><strong>{m.title}</strong><span>{m.category} · {m.source}{m.demo&&<em className="sample-tag">SAMPLE</em>}</span></div></div><div><span className={"market-label "+(m.direction==="request"?"wanted":"")}>{marketLabel(m)}</span></div><span className="market-city"><MapPin size={13}/>{m.location}</span><div className="market-end"><strong>{m.direction==="request"?<span className="terms-open">Open to offers</span>:m.type==="sell"?"€"+m.price:m.type==="rent"?"€"+m.price+"/day":"Free"}</strong><button className="market-open" aria-label={"Open "+m.title} onClick={()=>m.demo?notify("This is illustrative sample data, not an active public request or offer."):notify("This draft exists only in this browser. Online messaging is not connected yet.")}><ArrowUpRight size={17}/></button></div></div>)}{marketplace.length===0&&<div className="empty-state"><h3>No matching results</h3><p>Try removing a filter or post an equipment request.</p><button className="secondary-button" onClick={()=>{resetMarketFilters();setMarketTab("all");}}>Clear filters</button></div>}</div></div>
+          <div className="market-cta"><div><strong>{marketTab==="request"?"Can you help with one of these?":marketTab==="offer"?"Looking for something that is not listed?":"Not finding what you need?"}</strong><span>{marketTab==="request"?"Offer a piece of equipment you do not use right now.":"Post a request and let people with the right gear find you."}</span></div><div className="market-cta-actions"><button className="secondary-button" onClick={()=>openOffer()}>Offer equipment</button><button className="primary-button" onClick={()=>{setRequestForm({title:"",category:"Microphones",location:"",type:"borrow"});setModal({type:"request"});}}>Post a request</button></div></div>
           <div className="market-footnote"><ShieldCheck size={17}/> Lending, renting and selling use different terms. Insurance, payment processing and identity verification are not implemented in this prototype.</div>
         </div>}
 
-        {page==="lab"&&<LabPage notify={notify}/>}
+        {page==="tools"&&<ToolsPage notify={notify}/>}
       </main>
     </div>
     {!store.setupComplete&&<Onboarding state={{...store,studioName:studios[0].name}} onComplete={changes=>setStore(s=>({...s,...changes,studios:s.studios.map((st,i)=>i===0?{...st,name:changes.studioName}:st),setupComplete:true}))} onAdd={()=>openAdd()}/>}
