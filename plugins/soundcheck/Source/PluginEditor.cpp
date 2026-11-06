@@ -14,7 +14,7 @@ const juce::Colour warning (0xffffaa6b);
 JenLowSoundcheckAudioProcessorEditor::JenLowSoundcheckAudioProcessorEditor
     (JenLowSoundcheckAudioProcessor& p) : AudioProcessorEditor (&p), processor (p)
 {
-    setSize (620, 420);
+    setSize (620, 460);
     for (auto* button : { &measureNoise, &resetPeaks, &resetClips })
     {
         addAndMakeVisible (*button);
@@ -96,20 +96,19 @@ void JenLowSoundcheckAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (13.0f);
     g.drawText ("SAMPLES AT OR ABOVE 0 dBFS: " +
                 juce::String (processor.getClippedSamples()),
-                25, 365, 340, 24, juce::Justification::left);
+                25, 410, 340, 24, juce::Justification::left);
     if (processor.getClippedSamples() > 0)
     {
         g.setColour (warning);
-        g.drawText ("CHECK INPUT GAIN", 390, 365, 205, 24, juce::Justification::right);
+        g.drawText ("CHECK INPUT GAIN", 390, 410, 205, 24, juce::Justification::right);
     }
 }
 
 void JenLowSoundcheckAudioProcessorEditor::resized()
 {
-    measureNoise.setBounds (24, 349, 207, 0); // below metrics: move controls to footer row
-    measureNoise.setBounds (24, 354, 207, 31);
-    resetPeaks.setBounds (242, 354, 122, 31);
-    resetClips.setBounds (375, 354, 122, 31);
+    measureNoise.setBounds (24, 365, 207, 31);
+    resetPeaks.setBounds (242, 365, 122, 31);
+    resetClips.setBounds (375, 365, 122, 31);
 }
 
 void JenLowSoundcheckAudioProcessorEditor::timerCallback()
