@@ -62,11 +62,37 @@ Edit `src/seed.json` (or re-extract from source), then:
 node scripts/build-seed-sql.mjs      # rewrites migrations/0002_seed.sql
 ```
 
+## Auth (Supabase) — one account, two profiles
+
+Login is handled by **Supabase**, shared with JenLow Network, so a user has one
+account across both apps. Tools does **not** store passwords; it keys its data by
+`account_id`, which is the Supabase auth user id (uuid). Each app keeps its own
+`profiles` row for that account — the user's "Tools profile".
+
+Tools uses a **separate D1 database** from Network (clean migrations; D1 can't join
+across databases anyway). The shared thing is the Supabase account id.
+
+To wire real auth into the Worker later, we'll need from Supabase:
+- the project URL (e.g. `https://<ref>.supabase.co`), and
+- the JWT secret **or** the JWKS URL,
+
+so the Worker can verify the caller's token and read `account_id` from it. Until
+then, write endpoints accept an `accountId`/`personName` in the body and the app
+keeps personal inventory in the browser.
+
+## Translations
+
+`de`, `pt` and `en` are added later; `fr` is the source. UI text goes through the
+app's i18n layer (`src/i18n.jsx`). Translatable **content** (product/review text)
+goes in the `translations` table — one row per `(entity, entity_id, field, locale)` —
+so translated strings slot in without a schema change.
+
 ## Notes / next steps
 
 - **Personal studios** (`studios`, `items` tables) exist but are unused: the app
-  still keeps your inventory in the browser, because there is no login yet. Once
-  you add auth, those tables and a few endpoints move that data server-side.
+  still keeps your inventory in the browser, because auth is not wired yet. Once
+  Supabase verification is in the Worker, those tables and a few endpoints move
+  that data server-side, keyed by `account_id`.
 - The catalogue content is **French** (brands, specs, reviews). The app chrome is
   English; localising the chrome is a separate step.
 - To move images off the repo later, upload `public/assets/**` to R2/Cloudflare

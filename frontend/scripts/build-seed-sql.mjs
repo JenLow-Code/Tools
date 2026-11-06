@@ -60,8 +60,8 @@ seed.tools.forEach((t, i) =>
 
 seed.market.forEach((m) =>
   out.push(row("listings",
-    ["id", "direction", "title", "category", "product_id", "type", "price", "location", "availability", "note", "source", "is_sample"],
-    [q(m.id), q(m.direction), q(m.title), q(m.category), q(m.productId), q(m.type), q(m.price), q(m.location), q(m.availability), q(m.note), q(m.source), m.isSample ? 1 : 0])));
+    ["id", "person_name", "direction", "title", "category", "product_id", "type", "price", "location", "availability", "note", "source", "is_sample"],
+    [q(m.id), q(m.person), q(m.direction), q(m.title), q(m.category), q(m.productId), q(m.type), q(m.price), q(m.location), q(m.availability), q(m.note), q(m.source), m.isSample ? 1 : 0])));
 
 out.push("COMMIT;");
 out.push("");

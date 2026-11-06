@@ -9,6 +9,28 @@ CREATE TABLE IF NOT EXISTS metadata (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ---- Identity ----
+-- Authentication lives in Supabase (one account across JenLow Network + Tools).
+-- We never store passwords here; `account_id` is the Supabase auth user id (uuid).
+-- A profile is this app's view of that account — the "Tools profile" of the user.
+CREATE TABLE IF NOT EXISTS profiles (
+  account_id   TEXT PRIMARY KEY,         -- = Supabase auth.users.id
+  display_name TEXT,
+  locale       TEXT NOT NULL DEFAULT 'fr',
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ---- Content translations (DE / PT / EN added later; FR is the source) ----
+-- Translatable fields of catalogue/editorial rows, one row per locale.
+CREATE TABLE IF NOT EXISTS translations (
+  entity    TEXT NOT NULL,               -- 'product' | 'category' | 'news' | 'release' | 'event' | 'tool'
+  entity_id TEXT NOT NULL,
+  field     TEXT NOT NULL,               -- e.g. 'description', 'summary', 'name'
+  locale    TEXT NOT NULL,               -- 'de' | 'pt' | 'en'
+  value     TEXT NOT NULL,
+  PRIMARY KEY (entity, entity_id, field, locale)
+);
+
 -- ---- Catalogue (shared, seeded) ----
 CREATE TABLE IF NOT EXISTS categories (
   id       TEXT PRIMARY KEY,
@@ -103,6 +125,8 @@ CREATE TABLE IF NOT EXISTS events (
 -- direction: 'offer' | 'request'
 CREATE TABLE IF NOT EXISTS listings (
   id           TEXT PRIMARY KEY,
+  account_id   TEXT,                     -- Supabase user id of the poster (null for seeded samples)
+  person_name  TEXT,                     -- display name shown on the card ("Anna")
   direction    TEXT NOT NULL DEFAULT 'offer',
   title        TEXT NOT NULL,
   category     TEXT,
@@ -134,7 +158,7 @@ CREATE TABLE IF NOT EXISTS tools (
 -- Kept here so the structured data can move off the browser once there are users.
 CREATE TABLE IF NOT EXISTS studios (
   id         TEXT PRIMARY KEY,
-  owner      TEXT,                       -- user id, once auth exists
+  account_id TEXT,                       -- = Supabase auth user id (null until auth is wired)
   name       TEXT NOT NULL,
   locations  TEXT NOT NULL DEFAULT '[]',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))

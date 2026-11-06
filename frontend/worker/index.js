@@ -112,12 +112,12 @@ async function api(request, env, url) {
     if (!body || !body.title) return err("A title is required", 400);
     const id = (direction === "offer" ? "off-" : "req-") + Date.now().toString(36);
     await db.prepare(
-      `INSERT INTO listings (id, direction, title, category, product_id, type, price, location, availability, note, source, is_sample)
-       VALUES (?,?,?,?,?,?,?,?,?,?, 'tools', 0)`
+      `INSERT INTO listings (id, account_id, person_name, direction, title, category, product_id, type, price, location, availability, note, source, is_sample)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'tools', 0)`
     ).bind(
-      id, direction, body.title, body.category ?? null, body.productId ?? null,
-      body.type ?? null, body.price ?? null, body.location ?? null,
-      body.availability ?? null, body.note ?? null
+      id, body.accountId ?? null, body.personName ?? null, direction, body.title,
+      body.category ?? null, body.productId ?? null, body.type ?? null,
+      body.price ?? null, body.location ?? null, body.availability ?? null, body.note ?? null
     ).run();
     const rows = await all(db, "listings", "SELECT * FROM listings WHERE id = ?", [id]);
     return json(rows[0], 201);
