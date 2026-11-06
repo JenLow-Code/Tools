@@ -1,8 +1,8 @@
 import React, { useEffect, useId, useState } from "react";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Bell, Check, CheckCircle2,
-  ChevronRight, Download, Filter, GitCompareArrows, Heart, Home, Info, Layers3,
-  LayoutGrid, MapPin, Mic2, Package, Pencil, Plus, Search, ShieldCheck,
+  ChevronRight, Download, Filter, GitCompareArrows, Globe, Heart, Home, Info, Layers3,
+  LayoutGrid, List, MapPin, Mic2, Package, Pencil, Plus, Search, ShieldCheck,
   ShoppingBag, SlidersHorizontal, Sparkles, Trash2, X
 } from "lucide-react";
 import PageHero from "./PageHero.jsx";
@@ -13,6 +13,7 @@ import {
   market as seedMarket, otherStudios, catName, productByModel
 } from "./data.js";
 import { fetchCatalogue, fetchMarket, postListing } from "./api.js";
+import { useT, LOCALES } from "./i18n.jsx";
 import "./styles.css";
 
 // Official JenLow Tools mark (from the brand source): a cyan→blue equaliser
@@ -140,6 +141,7 @@ function Modal({title,subtitle,onClose,children}) {
   </div>;
 }
 function Onboarding({state,onComplete,onAdd}) {
+  const { t } = useT();
   const [step,setStep]=useState(0);
   const [purpose,setPurpose]=useState(state.purpose);
   const [daw,setDaw]=useState(state.daw);
@@ -149,21 +151,22 @@ function Onboarding({state,onComplete,onAdd}) {
   return <div className="welcome-layer"><div className="welcome-card">
     <div className="welcome-visual">
       <div className="welcome-brand jl-brand jl-brand-dark"><JlWave/><span className="jl-wordmark"><span className="jl-word">JENLOW</span><span className="jl-tools">TOOLS</span></span></div>
-      <div className="welcome-copy"><span className="overline pale">WELCOME TO YOUR WORKSPACE</span><h1>Your equipment.<br/>Your space.<br/><em>Under control.</em></h1><p>Start with a simple studio. Make it yours as you go.</p></div>
+      <div className="welcome-copy"><span className="overline pale">{t("WELCOME TO YOUR WORKSPACE")}</span><h1>{t("Your equipment.")}<br/>{t("Your space.")}<br/><em>{t("Under control.")}</em></h1><p>{t("Start with a simple studio. Make it yours as you go.")}</p></div>
       <div className="welcome-orbit"><div className="orbit-screen"/><div className="orbit-speaker a"/><div className="orbit-speaker b"/><div className="orbit-table"/></div>
-      <div className="welcome-foot">DESKTOP-FIRST · PRIVATE BY DEFAULT</div>
+      <div className="welcome-foot">{t("DESKTOP-FIRST · PRIVATE BY DEFAULT")}</div>
     </div>
     <div className="welcome-steps">
-      <div className="step-meta"><span>SET UP MY STUDIO</span><span>{step+1} OF 3</span></div>
+      <div className="step-meta"><span>{t("SET UP MY STUDIO")}</span><span>{t("{a} OF {b}",{a:step+1,b:3})}</span></div>
       <div className="step-progress"><span style={{width:((step+1)/3*100)+"%"}}/></div>
-      {step===0&&<div className="step-main"><div className="step-icon"><Home size={24}/></div><h2>Start with your space.</h2><p>We've prepared a clean 2D home studio. No room measurements, photos, or 3D setup required.</p><div className="sample-choice"><div className="sample-choice-icon"><LayoutGrid size={27}/></div><div><strong>Sample home studio</strong><span>Desk · Rack · Storage · Cellar</span></div><CheckCircle2 size={19} className="blue-icon"/></div><label className="field-label">Name your space <span>optional</span></label><input value={name} onChange={e=>setName(e.target.value)} placeholder="My Home Studio"/></div>}
-      {step===1&&<div className="step-main"><div className="step-icon"><SlidersHorizontal size={24}/></div><h2>What do you create?</h2><p>One quick answer helps make your equipment suggestions more relevant. You can change this later.</p><div className="choice-grid">{purposes.map(p=><button className={"choice" +(purpose===p?" chosen":"")} key={p} onClick={()=>setPurpose(p)}>{p}{purpose===p&&<Check size={16}/>}</button>)}</div><label className="field-label">Your main software <span>optional</span></label><select value={daw} onChange={e=>setDaw(e.target.value)}><option value="">None / tell you later</option><option>FL Studio</option><option>Ableton Live</option><option>Logic Pro</option><option>Pro Tools</option><option>Reaper</option><option>Cubase</option><option>Other</option></select></div>}
-      {step===2&&<div className="step-main"><div className="step-icon"><Package size={24}/></div><h2>Ready for your first item?</h2><p>Your studio is private. Each physical item gets its own record, even if you own several of the same model.</p><div className="final-check"><CheckCircle2 size={20}/><div><strong>Your studio is ready</strong><span>Add equipment now or whenever you're ready.</span></div></div><button className="secondary-button wide" onClick={()=>{finish();onAdd();}}><Plus size={17}/> Add my first piece of equipment</button></div>}
-      <div className="welcome-actions"><button className="text-button" onClick={finish}>I'll do this later</button><div className="welcome-right">{step>0&&<button className="secondary-button" onClick={()=>setStep(step-1)}><ArrowLeft size={16}/> Back</button>}<button className="primary-button" onClick={()=>step<2?setStep(step+1):finish()}>{step<2?"Continue":"Open My Studio"} <ArrowRight size={16}/></button></div></div>
+      {step===0&&<div className="step-main"><div className="step-icon"><Home size={24}/></div><h2>{t("Start with your space.")}</h2><p>{t("We've prepared a clean 2D home studio. No room measurements, photos, or 3D setup required.")}</p><div className="sample-choice"><div className="sample-choice-icon"><LayoutGrid size={27}/></div><div><strong>{t("Sample home studio")}</strong><span>Desk · Rack · Storage · Cellar</span></div><CheckCircle2 size={19} className="blue-icon"/></div><label className="field-label">{t("Name your space")} <span>{t("optional")}</span></label><input value={name} onChange={e=>setName(e.target.value)} placeholder="My Home Studio"/></div>}
+      {step===1&&<div className="step-main"><div className="step-icon"><SlidersHorizontal size={24}/></div><h2>{t("What do you create?")}</h2><p>{t("One quick answer helps make your equipment suggestions more relevant. You can change this later.")}</p><div className="choice-grid">{purposes.map(p=><button className={"choice" +(purpose===p?" chosen":"")} key={p} onClick={()=>setPurpose(p)}>{t(p)}{purpose===p&&<Check size={16}/>}</button>)}</div><label className="field-label">{t("Your main software")} <span>{t("optional")}</span></label><select value={daw} onChange={e=>setDaw(e.target.value)}><option value="">{t("None / tell you later")}</option><option>FL Studio</option><option>Ableton Live</option><option>Logic Pro</option><option>Pro Tools</option><option>Reaper</option><option>Cubase</option><option>{t("Other")}</option></select></div>}
+      {step===2&&<div className="step-main"><div className="step-icon"><Package size={24}/></div><h2>{t("Ready for your first item?")}</h2><p>{t("Your studio is private. Each physical item gets its own record, even if you own several of the same model.")}</p><div className="final-check"><CheckCircle2 size={20}/><div><strong>{t("Your studio is ready")}</strong><span>{t("Add equipment now or whenever you're ready.")}</span></div></div><button className="secondary-button wide" onClick={()=>{finish();onAdd();}}><Plus size={17}/> {t("Add my first piece of equipment")}</button></div>}
+      <div className="welcome-actions"><button className="text-button" onClick={finish}>{t("I'll do this later")}</button><div className="welcome-right">{step>0&&<button className="secondary-button" onClick={()=>setStep(step-1)}><ArrowLeft size={16}/> {t("Back")}</button>}<button className="primary-button" onClick={()=>step<2?setStep(step+1):finish()}>{step<2?t("Continue"):t("Open My Studio")} <ArrowRight size={16}/></button></div></div>
     </div>
   </div></div>;
 }
 function App() {
+  const { t, locale, setLocale } = useT();
   const [store,setStore]=useState(readStore);
   // Catalogue and marketplace come from the bundled seed, overlaid by the live API when present.
   const [catalog,setCatalog]=useState({categories:seedCategories,products:seedProducts});
@@ -193,6 +196,7 @@ function App() {
   const [marketPrice,setMarketPrice]=useState("");
   const [marketAvailable,setMarketAvailable]=useState(false);
   const [marketSearch,setMarketSearch]=useState("");
+  const [marketView,setMarketView]=useState("cards");
   const [toast,setToast]=useState("");
   const [itemForm,setItemForm]=useState({name:"",brand:"",category:"microphones",location:"Desk",quantity:1,serial:"",condition:"Good"});
   const [offerForm,setOfferForm]=useState({type:"rent",price:"",location:"",availability:"Available",itemId:"",newName:"",newBrand:"",newCategory:"microphones"});
@@ -307,12 +311,13 @@ function App() {
       <header className="topbar">
         <a className="premium-logo jl-brand" href="#" onClick={e=>{e.preventDefault();setPage("studio");setStudioOpen(false);}} aria-label="JenLow Tools Home"><JlWave/><span className="jl-wordmark"><span className="jl-word">JENLOW</span><span className="jl-tools">TOOLS</span></span></a>
         <nav className="premium-nav" aria-label="Tools navigation">
-          {NAV.map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>{setPage(n.key);if(n.key==="studio")setStudioOpen(false);}}>{n.label}</button>)}
+          {NAV.map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>{setPage(n.key);if(n.key==="studio")setStudioOpen(false);}}>{t(n.label)}</button>)}
         </nav>
         <div className="premium-header-actions">
-          <button className="premium-icon" title="Add equipment" onClick={()=>openAdd()} aria-label="Add equipment"><Plus size={19}/></button>
-          <button className="premium-icon" title="Notifications" onClick={()=>notify("Notifications need a backend connection.")} aria-label="Notifications"><Bell size={18}/></button>
-          <button className="premium-avatar" onClick={()=>notify("Account management is not connected yet.")} title="Account">JL</button>
+          <label className="lang-select" title={t("Language")}><Globe size={16}/><select value={locale} onChange={e=>setLocale(e.target.value)} aria-label={t("Language")}>{LOCALES.map(([code,name])=><option key={code} value={code}>{code.toUpperCase()}</option>)}</select></label>
+          <button className="premium-icon" title={t("Add equipment")} onClick={()=>openAdd()} aria-label={t("Add equipment")}><Plus size={19}/></button>
+          <button className="premium-icon" title={t("Notifications")} onClick={()=>notify(t("Notifications need a backend connection."))} aria-label={t("Notifications")}><Bell size={18}/></button>
+          <button className="premium-avatar" onClick={()=>notify(t("Account management is not connected yet."))} title={t("Account")}>JL</button>
           <a className="ecosystem-link" href="https://jenlow.net" target="_blank" rel="noreferrer" title="JenLow ecosystem"><LayoutGrid size={17}/></a>
         </div>
       </header>
@@ -324,109 +329,121 @@ function App() {
                 <div className="hero-photography" aria-hidden="true"/>
                 <div className="hero-shade" aria-hidden="true"/>
                 <div className="hero-content">
-                  <div className="hero-topline"><span className="hero-kicker">JENLOW TOOLS / YOUR STUDIO</span><span className="hero-topline-right"><span className="hero-indicator"/> PRIVATE STUDIO</span></div>
+                  <div className="hero-topline"><span className="hero-kicker">{t("JENLOW TOOLS / YOUR STUDIO")}</span><span className="hero-topline-right"><span className="hero-indicator"/> {t("PRIVATE STUDIO")}</span></div>
                   <div className="hero-center">
-                    <span className="hero-pretitle">MY STUDIO</span>
+                    <span className="hero-pretitle">{t("MY STUDIO")}</span>
                     <h1>{studio.name}</h1>
-                    <p>{activeItems.length} {activeItems.length===1?"item":"items"} across {locations.length} locations. Everything you own, in its place.</p>
+                    <p>{t("{n} items across {m} locations. Everything you own, in its place.",{n:activeItems.length,m:locations.length})}</p>
                     <div className="hero-buttons">
-                      <button className="hero-primary" onClick={e=>{e.stopPropagation();setStudioOpen(true);}}>Open my studio <ArrowUpRight size={19}/></button>
-                      <button className="hero-secondary" onClick={e=>{e.stopPropagation();openAdd();}}>Add equipment <ArrowRight size={18}/></button>
+                      <button className="hero-primary" onClick={e=>{e.stopPropagation();setStudioOpen(true);}}>{t("Open my studio")} <ArrowUpRight size={19}/></button>
+                      <button className="hero-secondary" onClick={e=>{e.stopPropagation();openAdd();}}>{t("Add equipment")} <ArrowRight size={18}/></button>
                     </div>
                   </div>
-                  <nav className="studio-chapters" aria-label="My studios" onClick={e=>e.stopPropagation()}>
-                    <span className="chapters-title">MY STUDIOS</span>
+                  <nav className="studio-chapters" aria-label={t("My studios")} onClick={e=>e.stopPropagation()}>
+                    <span className="chapters-title">{t("MY STUDIOS")}</span>
                     {studios.map((st,n)=><button key={st.id} className={st.id===studio.id?"active":""} aria-current={st.id===studio.id?"true":undefined} onClick={e=>{e.stopPropagation();selectStudio(st.id);}}><span className="ch-num">{String(n+1).padStart(2,"0")}</span><span className="ch-name">{st.name}</span><span className="ch-count">{store.items.filter(x=>x.studioId===st.id&&x.status!=="Sold").length}</span></button>)}
-                    <button className="ch-add" onClick={e=>{e.stopPropagation();setModal({type:"studio"});}}><Plus size={14}/> New studio</button>
+                    <button className="ch-add" onClick={e=>{e.stopPropagation();setModal({type:"studio"});}}><Plus size={14}/> {t("New studio")}</button>
                   </nav>
-                  <div className="hero-bottomline"><span>STUDIO {String(studios.indexOf(studio)+1).padStart(2,"0")} <i/> {studio.name}</span><span>CLICK TO OPEN · SCROLL FOR OTHER STUDIOS <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
+                  <div className="hero-bottomline"><span>{t("STUDIO")} {String(studios.indexOf(studio)+1).padStart(2,"0")} <i/> {studio.name}</span><span>{t("CLICK TO OPEN · SCROLL FOR OTHER STUDIOS")} <ArrowRight size={16} style={{transform:"rotate(90deg)"}}/></span></div>
                 </div>
               </section>
               <section className="other-studios">
-                <div className="other-studios-head"><div><span className="premium-small-caps">DISCOVER</span><h2>Other studios</h2><p>Studios with similar features. Sample entries only: no real studios are listed yet.</p></div></div>
-                <div className="studio-cards">{otherStudios.map(o=><button key={o.id} className="studio-card" onClick={()=>notify("Sample studio: illustrative only. Studio pages and booking are not built yet.")}><div className="studio-card-art"><span className="sample-tag">SAMPLE</span>{o.kind.toUpperCase()}</div><h3>{o.name}</h3><p>{o.place} · {o.terms}</p><div className="studio-tags">{o.tags.map(t=><span key={t}>{t}</span>)}</div></button>)}</div>
+                <div className="other-studios-head"><div><span className="premium-small-caps">{t("DISCOVER")}</span><h2>{t("Other studios")}</h2><p>{t("Studios with similar features. Sample entries only: no real studios are listed yet.")}</p></div></div>
+                <div className="studio-cards">{otherStudios.map(o=><button key={o.id} className="studio-card" onClick={()=>notify(t("Sample studio: illustrative only. Studio pages and booking are not built yet."))}><div className="studio-card-art"><span className="sample-tag">SAMPLE</span>{o.kind.toUpperCase()}</div><h3>{o.name}</h3><p>{o.place} · {o.terms}</p><div className="studio-tags">{o.tags.map(tag=><span key={tag}>{tag}</span>)}</div></button>)}</div>
               </section>
             </>}
             {studioOpen&&<>
-              <div className="studio-topbar"><button className="studio-back" onClick={()=>setStudioOpen(false)}><ArrowLeft size={15}/> Overview</button>
-                <div className="studio-pick" role="group" aria-label="Switch studio">{studios.map(st=><button key={st.id} className={st.id===studio.id?"active":""} onClick={()=>selectStudio(st.id,true)}>{st.name}</button>)}<button className="pick-add" onClick={()=>setModal({type:"studio"})}><Plus size={13}/> New studio</button></div></div>
+              <div className="studio-topbar"><button className="studio-back" onClick={()=>setStudioOpen(false)}><ArrowLeft size={15}/> {t("Overview")}</button>
+                <div className="studio-pick" role="group" aria-label={t("Switch studio")}>{studios.map(st=><button key={st.id} className={st.id===studio.id?"active":""} onClick={()=>selectStudio(st.id,true)}>{st.name}</button>)}<button className="pick-add" onClick={()=>setModal({type:"studio"})}><Plus size={13}/> {t("New studio")}</button></div></div>
               <section className="studio-head">
                 <div>
                   <span className="premium-small-caps">YOUR WORKSPACE</span>
                   <h2>{studio.name}</h2>
-                  <p className="studio-summary"><strong>{activeItems.length}</strong> {activeItems.length===1?"item":"items"}<i/><strong>{locations.length}</strong> locations<i/><strong>{availableCount}</strong> available<i/>private by default</p>
+                  <p className="studio-summary"><strong>{activeItems.length}</strong> {t("items")}<i/><strong>{locations.length}</strong> {t("locations")}<i/><strong>{availableCount}</strong> {t("available")}<i/>{t("private by default")}</p>
                 </div>
-                <div className="heading-buttons"><button className="secondary-button" onClick={()=>setModal({type:"studio",rename:true})}><Pencil size={15}/> Rename</button><button className="secondary-button" onClick={exportCSV}><Download size={16}/> Export CSV</button><button className="primary-button" onClick={()=>openAdd()}><Plus size={17}/> Add equipment</button></div>
+                <div className="heading-buttons"><button className="secondary-button" onClick={()=>setModal({type:"studio",rename:true})}><Pencil size={15}/> {t("Rename")}</button><button className="secondary-button" onClick={exportCSV}><Download size={16}/> {t("Export CSV")}</button><button className="primary-button" onClick={()=>openAdd()}><Plus size={17}/> {t("Add equipment")}</button></div>
               </section>
               <div className="studio-workspace">
                 <div className="studio-visual">
                   <Scene items={studioItems} locations={locations} onSelect={l=>setActiveLocation(a=>a===l?"All locations":l)} location={activeLocation} onAdd={()=>openAdd()}/>
-                  <div className="premium-room-caption"><span>SAMPLE ROOM</span><span>Select a spot to filter the equipment list</span></div>
+                  <div className="premium-room-caption"><span>{t("SAMPLE ROOM")}</span><span>{t("Select a spot to filter the equipment list")}</span></div>
                 </div>
-                <section className="studio-inventory" aria-label="Equipment inventory">
-                  <div className="inventory-head"><div><h2>Equipment</h2><p>Each physical item is tracked separately.</p></div><span className="subtle-label">{inventory.length} SHOWN</span></div>
-                  <div className="location-chips" role="group" aria-label="Filter by location">
-                    <button className={activeLocation==="All locations"?"active":""} onClick={()=>setActiveLocation("All locations")}>All <span>{activeItems.length}</span></button>
+                <section className="studio-inventory" aria-label={t("Equipment inventory")}>
+                  <div className="inventory-head"><div><h2>{t("Equipment")}</h2><p>{t("Each physical item is tracked separately.")}</p></div><span className="subtle-label">{inventory.length} {t("SHOWN")}</span></div>
+                  <div className="location-chips" role="group" aria-label={t("Filter by location")}>
+                    <button className={activeLocation==="All locations"?"active":""} onClick={()=>setActiveLocation("All locations")}>{t("All")} <span>{activeItems.length}</span></button>
                     {locations.map(l=><button key={l} className={activeLocation===l?"active":""} onClick={()=>setActiveLocation(l)}>{l} <span>{countIn(l)}</span></button>)}
-                    <button className="chip-action" onClick={()=>setModal({type:"location"})}><Plus size={13}/> Location</button>
-                    {activeLocation!=="All locations"&&<button className="chip-action" onClick={()=>setModal({type:"location",rename:activeLocation})}><Pencil size={13}/> Rename</button>}
+                    <button className="chip-action" onClick={()=>setModal({type:"location"})}><Plus size={13}/> {t("Location")}</button>
+                    {activeLocation!=="All locations"&&<button className="chip-action" onClick={()=>setModal({type:"location",rename:activeLocation})}><Pencil size={13}/> {t("Rename")}</button>}
                   </div>
-                  <div className="search-input inventory-search"><Search size={17}/><input placeholder="Search equipment, brand, location or serial…" value={itemSearch} onChange={e=>setItemSearch(e.target.value)}/></div>
-                  {inventory.length>0?<div className="inventory-list">{inventory.map(renderItem)}</div>:<div className="empty-state"><div className="empty-icon"><Package size={26}/></div><h3>{activeItems.length?"No matching equipment":"Your studio starts here."}</h3><p>{activeItems.length?"Try a different search or location.":"Add your first microphone, instrument or interface. You'll see it in the list and at its chosen location."}</p><button className="primary-button" onClick={()=>openAdd()}><Plus size={16}/> Add equipment</button></div>}
+                  <div className="search-input inventory-search"><Search size={17}/><input placeholder={t("Search equipment, brand, location or serial…")} value={itemSearch} onChange={e=>setItemSearch(e.target.value)}/></div>
+                  {inventory.length>0?<div className="inventory-list">{inventory.map(renderItem)}</div>:<div className="empty-state"><div className="empty-icon"><Package size={26}/></div><h3>{activeItems.length?t("No matching equipment"):t("Your studio starts here.")}</h3><p>{activeItems.length?t("Try a different search or location."):t("Add your first microphone, instrument or interface. You'll see it in the list and at its chosen location.")}</p><button className="primary-button" onClick={()=>openAdd()}><Plus size={16}/> {t("Add equipment")}</button></div>}
                 </section>
               </div>
-              <div className="studio-bottom"><div className="small-feature"><span><Sparkles size={19}/></span><div><strong>Explore your next upgrade</strong><p>Browse the sample catalogue and compare products.</p><button onClick={()=>{setPage("equipment");setExploreTab("browse");}}>Explore equipment <ArrowRight size={15}/></button></div></div><div className="small-feature"><span><ShoppingBag size={19}/></span><div><strong>Make the most of your gear</strong><p>Draft a sale, rental or free loan from an inventory item.</p><button onClick={()=>openOffer()}>Create an offer <ArrowRight size={15}/></button></div></div></div>
+              <div className="studio-bottom"><div className="small-feature"><span><Sparkles size={19}/></span><div><strong>{t("Explore your next upgrade")}</strong><p>{t("Browse the catalogue and compare products.")}</p><button onClick={()=>{setPage("equipment");setExploreTab("browse");}}>{t("Explore equipment")} <ArrowRight size={15}/></button></div></div><div className="small-feature"><span><ShoppingBag size={19}/></span><div><strong>{t("Make the most of your gear")}</strong><p>{t("Draft a sale, rental or free loan from an inventory item.")}</p><button onClick={()=>openOffer()}>{t("Create an offer")} <ArrowRight size={15}/></button></div></div></div>
             </>}
           </div>
         </div>}
 
         {page==="equipment"&&<div className="page-equipment">
           <PageHero
-            kicker="JENLOW TOOLS / EQUIPMENT" title="Know your gear." accent="Find what's next."
-            text="Everything in one catalogue. Search it, compare it, or narrow it to what suits your setup."
-            foot={["CATALOGUE · COMPARE · SAVE","BUILT FOR YOUR SETUP"]} variant="mic"
+            kicker={t("JENLOW TOOLS / EQUIPMENT")} title={t("Know your gear.")} accent={t("Find what's next.")}
+            text={t("Everything in one catalogue. Search it, compare it, or narrow it to what suits your setup.")}
+            foot={[t("CATALOGUE · COMPARE · SAVE"),t("BUILT FOR YOUR SETUP")]} variant="mic"
           >
-            <div className="hero-search"><Search size={18}/><input aria-label="Search equipment" placeholder="Search any brand, model or category…" value={exploreSearch} onChange={e=>{setExploreSearch(e.target.value);setExploreTab("browse");}} onKeyDown={e=>{if(e.key==="Enter")goToList();}}/></div>
+            <div className="hero-search"><Search size={18}/><input aria-label={t("Search equipment")} placeholder={t("Search any brand, model or category…")} value={exploreSearch} onChange={e=>{setExploreSearch(e.target.value);setExploreTab("browse");}} onKeyDown={e=>{if(e.key==="Enter")goToList();}}/></div>
             <div className="hero-chips">{productCategories.map(c=><button key={c.id} onClick={()=>pickCategory(c.id)}>{c.name}</button>)}</div>
           </PageHero>
-          <div className="explore-tabs" id="equipment-list">{[{id:"browse",name:"All equipment"},{id:"compare",name:"Compare"}].map(t=><button key={t.id} className={exploreTab===t.id?"current":""} onClick={()=>setExploreTab(t.id)}>{t.name}</button>)}</div>
+          <div className="explore-tabs" id="equipment-list">{[{id:"browse",name:"All equipment"},{id:"compare",name:"Compare"}].map(tb=><button key={tb.id} className={exploreTab===tb.id?"current":""} onClick={()=>setExploreTab(tb.id)}>{t(tb.name)}</button>)}</div>
           {exploreTab==="browse"&&<>
-            <div className="explore-toolbar"><div className="search-input explore-search"><Search size={18}/><input placeholder="Search brands, models, categories…" value={exploreSearch} onChange={e=>setExploreSearch(e.target.value)}/></div>
-              <button className={"saved-toggle"+(fitOnly?" active":"")} onClick={()=>setFitOnly(v=>!v)} aria-pressed={fitOnly}><Sparkles size={15}/> Fits my setup</button>
-              <button className={"saved-toggle"+(exploreSaved?" active":"")} onClick={()=>setExploreSaved(v=>!v)} aria-pressed={exploreSaved}><Heart size={15} fill={exploreSaved?"currentColor":"none"}/> Saved ({store.wishlist.length})</button></div>
-            <div className="category-chips" role="group" aria-label="Filter by category"><button className={exploreCategory==="all"?"active":""} onClick={()=>setExploreCategory("all")}>All categories</button>{productCategories.map(c=><button key={c.id} className={exploreCategory===c.id?"active":""} onClick={()=>setExploreCategory(c.id)}>{c.name}</button>)}</div>
-            {fitOnly&&<div className="market-info"><Info size={16}/><span>{allActive.length?"Early prototype: this only shows categories you don't own yet. Real compatibility checks (connectors, drivers, your stated needs) are not built.":"Add equipment in My Studio first, so there is a setup to match. Until then this filter shows everything."}</span></div>}
+            <div className="explore-toolbar"><div className="search-input explore-search"><Search size={18}/><input placeholder={t("Search brands, models, categories…")} value={exploreSearch} onChange={e=>setExploreSearch(e.target.value)}/></div>
+              <button className={"saved-toggle"+(fitOnly?" active":"")} onClick={()=>setFitOnly(v=>!v)} aria-pressed={fitOnly}><Sparkles size={15}/> {t("Fits my setup")}</button>
+              <button className={"saved-toggle"+(exploreSaved?" active":"")} onClick={()=>setExploreSaved(v=>!v)} aria-pressed={exploreSaved}><Heart size={15} fill={exploreSaved?"currentColor":"none"}/> {t("Saved")} ({store.wishlist.length})</button></div>
+            <div className="category-chips" role="group" aria-label={t("Filter by category")}><button className={exploreCategory==="all"?"active":""} onClick={()=>setExploreCategory("all")}>{t("All categories")}</button>{productCategories.map(c=><button key={c.id} className={exploreCategory===c.id?"active":""} onClick={()=>setExploreCategory(c.id)}>{c.name}</button>)}</div>
+            {fitOnly&&<div className="market-info"><Info size={16}/><span>{allActive.length?t("Early prototype: this only shows categories you don't own yet. Real compatibility checks (connectors, drivers, your stated needs) are not built."):t("Add equipment in My Studio first, so there is a setup to match. Until then this filter shows everything.")}</span></div>}
             <div className="product-grid">{displayProducts.map(productCard)}</div>
-            {!displayProducts.length&&<div className="empty-state"><p>{exploreSaved&&!store.wishlist.length?"Nothing saved yet. Use the heart on any product to keep it here.":"No matching products. You can always add equipment manually in My Studio."}</p></div>}
-            <p className="catalogue-note"><Info size={14}/> {products.length} products across {productCategories.length} categories, compiled from manufacturer and press sources. Last checked {CHECKED_AT}.</p>
+            {!displayProducts.length&&<div className="empty-state"><p>{exploreSaved&&!store.wishlist.length?t("Nothing saved yet. Use the heart on any product to keep it here."):t("No matching products. You can always add equipment manually in My Studio.")}</p></div>}
+            <p className="catalogue-note"><Info size={14}/> {t("{n} products across {m} categories, compiled from manufacturer and press sources. Last checked {date}.",{n:products.length,m:productCategories.length,date:CHECKED_AT})}</p>
           </>}
-          {exploreTab==="compare"&&<div className="panel compare-panel"><div className="compare-title"><GitCompareArrows size={24}/><div><h2>Compare products</h2><p>Side-by-side specifications from the catalogue.</p></div></div><div className="compare-selectors"><select value={compareA} onChange={e=>setCompareA(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.model}</option>)}</select><span>VS</span><select value={compareB} onChange={e=>setCompareB(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.model}</option>)}</select></div>
+          {exploreTab==="compare"&&<div className="panel compare-panel"><div className="compare-title"><GitCompareArrows size={24}/><div><h2>{t("Compare products")}</h2><p>{t("Side-by-side specifications from the catalogue.")}</p></div></div><div className="compare-selectors"><select value={compareA} onChange={e=>setCompareA(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.model}</option>)}</select><span>VS</span><select value={compareB} onChange={e=>setCompareB(e.target.value)}>{products.map(p=><option key={p.id} value={p.id}>{p.brand} {p.model}</option>)}</select></div>
             <div className="compare-photos"><div>{cmpA?.image&&<img src={cmpA.image} alt={cmpA.model}/>}<strong>{cmpA?.brand} {cmpA?.model}</strong></div><div>{cmpB?.image&&<img src={cmpB.image} alt={cmpB.model}/>}<strong>{cmpB?.brand} {cmpB?.model}</strong></div></div>
-            <div className="compare-results"><div className="compare-row"><span>Category</span><strong>{catName(cmpA?.category)}</strong><strong>{catName(cmpB?.category)}</strong></div><div className="compare-row"><span>Type</span><strong>{cmpA?.sub||"—"}</strong><strong>{cmpB?.sub||"—"}</strong></div>{cmpSpecs.map(k=><div className="compare-row" key={k}><span>{k}</span><strong>{cmpA?.specs?.[k]||"—"}</strong><strong>{cmpB?.specs?.[k]||"—"}</strong></div>)}</div></div>}
+            <div className="compare-results"><div className="compare-row"><span>{t("Category")}</span><strong>{catName(cmpA?.category)}</strong><strong>{catName(cmpB?.category)}</strong></div><div className="compare-row"><span>{t("Type")}</span><strong>{cmpA?.sub||"—"}</strong><strong>{cmpB?.sub||"—"}</strong></div>{cmpSpecs.map(k=><div className="compare-row" key={k}><span>{k}</span><strong>{cmpA?.specs?.[k]||"—"}</strong><strong>{cmpB?.specs?.[k]||"—"}</strong></div>)}</div></div>}
         </div>}
 
         {page==="news"&&<NewsPage notify={notify}/>}
 
         {page==="market"&&<div className="page-market">
           <PageHero
-            kicker="JENLOW TOOLS / GEAR EXCHANGE" title="Good equipment." accent="New possibilities."
-            text="Browse offers and requests from one professional marketplace."
-            foot={["OFFERS · REQUESTS","LEND · RENT · SELL"]} variant="exchange" short
+            kicker={t("JENLOW TOOLS / GEAR EXCHANGE")} title={t("Good equipment.")} accent={t("New possibilities.")}
+            text={t("Borrow, rent or sell gear with other studios nearby.")}
+            foot={[t("OFFERS · REQUESTS"),t("LEND · RENT · SELL")]} variant="exchange" short
           >
             <div className="hero-buttons">
-              <button className="hero-primary" onClick={()=>openOffer()}>Offer equipment <ArrowUpRight size={19}/></button>
-              <button className="hero-secondary" onClick={()=>{setRequestForm({title:"",category:"Microphones",location:"",type:"borrow"});setModal({type:"request"});}}>Post a request <ArrowRight size={18}/></button>
+              <button className="hero-primary" onClick={()=>openOffer()}>{t("Offer equipment")} <ArrowUpRight size={19}/></button>
+              <button className="hero-secondary" onClick={()=>{setRequestForm({title:"",category:"microphones",location:"",type:"borrow"});setModal({type:"request"});}}>{t("Post a request")} <ArrowRight size={18}/></button>
             </div>
           </PageHero>
-          <div className="market-info"><Info size={16}/><span>Prototype preview: listings marked SAMPLE (including Network request examples) are fictional, and your own drafts are saved only in this browser. No real bookings or payments.</span></div>
+          <div className="market-info"><Info size={16}/><span>{t("Prototype preview: listings marked SAMPLE (including Network request examples) are fictional, and your own drafts are saved only in this browser. No real bookings or payments.")}</span></div>
           <div className="market-toolbar">
-            <div className="market-tabs">{[{key:"all",name:"All"},{key:"offer",name:"Offers"},{key:"request",name:"Requests"}].map(t=><button className={marketTab===t.key?"current":""} key={t.key} onClick={()=>{setMarketTab(t.key);setMarketType("all");}}>{t.name} <span className="tab-count">{marketCount(t.key)}</span></button>)}</div>
-            <div className="search-input market-search"><Search size={16}/><input placeholder="Search equipment…" value={marketSearch} onChange={e=>setMarketSearch(e.target.value)}/></div>
+            <div className="market-tabs">{[{key:"all",name:"All"},{key:"offer",name:"Offers"},{key:"request",name:"Requests"}].map(tb=><button className={marketTab===tb.key?"current":""} key={tb.key} onClick={()=>{setMarketTab(tb.key);setMarketType("all");}}>{t(tb.name)} <span className="tab-count">{marketCount(tb.key)}</span></button>)}</div>
+            <div className="market-toolbar-right">
+              <div className="view-toggle" role="group" aria-label={t("View")}><button className={marketView==="cards"?"on":""} onClick={()=>setMarketView("cards")} aria-label={t("Cards")} title={t("Cards")}><LayoutGrid size={16}/></button><button className={marketView==="list"?"on":""} onClick={()=>setMarketView("list")} aria-label={t("List")} title={t("List")}><List size={16}/></button></div>
+              <div className="search-input market-search"><Search size={16}/><input placeholder={t("Search equipment…")} value={marketSearch} onChange={e=>setMarketSearch(e.target.value)}/></div>
+            </div>
           </div>
-          <div className="market-layout"><aside className="filter-panel"><div className="filters-heading"><Filter size={16}/> Filters <button onClick={resetMarketFilters}>Reset</button></div><label>TRANSACTION TYPE<select value={marketType} onChange={e=>setMarketType(e.target.value)}><option value="all">All types</option>{typeOptions.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label><label>EQUIPMENT CATEGORY<select value={marketCategory} onChange={e=>setMarketCategory(e.target.value)}><option value="all">All categories</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>LOCATION<input placeholder="City or region" value={marketLocation} onChange={e=>setMarketLocation(e.target.value)}/></label><label>MAX. PRICE (€)<input type="number" min="0" placeholder="Any price" value={marketPrice} onChange={e=>setMarketPrice(e.target.value)}/></label><label className="filter-checkbox"><input type="checkbox" checked={marketAvailable} onChange={e=>setMarketAvailable(e.target.checked)}/> Available / flexible now</label></aside>
-          <div className={"market-results"+(marketTab==="request"?" is-requests":"")}><div className="market-results-head"><div><strong>{marketplace.length} {marketplace.length===1?"result":"results"}</strong><span>{marketIntro}</span></div></div><div className="market-header"><span>EQUIPMENT / REQUEST</span><span>TYPE</span><span>LOCATION</span><span>TERMS</span></div>{marketplace.map(m=><div className="market-row" key={m.id}><div className="market-name"><span className={"market-type-icon "+(m.direction==="request"?"wanted":"")}><Package size={19}/></span><div><strong>{m.title}</strong><span>{catName(m.category)} · {m.source==="network"?"Network preview":m.mine?"Your draft":"JenLow Tools"}{m.isSample?<em className="sample-tag">SAMPLE</em>:null}</span></div></div><div><span className={"market-label "+(m.direction==="request"?"wanted":"")}>{marketLabel(m)}</span></div><span className="market-city"><MapPin size={13}/>{m.location}</span><div className="market-end"><strong>{m.direction==="request"?<span className="terms-open">Open to offers</span>:m.type==="sell"?"€"+m.price:m.type==="rent"?"€"+m.price+"/day":"Free"}</strong><button className="market-open" aria-label={"Open "+m.title} onClick={()=>m.isSample?notify("This is illustrative sample data, not an active public request or offer."):m.mine?notify("This draft exists only in this browser until the backend is connected."):notify("Messaging is not connected yet.")}><ArrowUpRight size={17}/></button></div></div>)}{marketplace.length===0&&<div className="empty-state"><h3>No matching results</h3><p>Try removing a filter or post an equipment request.</p><button className="secondary-button" onClick={()=>{resetMarketFilters();setMarketTab("all");}}>Clear filters</button></div>}</div></div>
-          <div className="market-cta"><div><strong>{marketTab==="request"?"Can you help with one of these?":marketTab==="offer"?"Looking for something that is not listed?":"Not finding what you need?"}</strong><span>{marketTab==="request"?"Offer a piece of equipment you do not use right now.":"Post a request and let people with the right gear find you."}</span></div><div className="market-cta-actions"><button className="secondary-button" onClick={()=>openOffer()}>Offer equipment</button><button className="primary-button" onClick={()=>{setRequestForm({title:"",category:"Microphones",location:"",type:"borrow"});setModal({type:"request"});}}>Post a request</button></div></div>
-          <div className="market-footnote"><ShieldCheck size={17}/> Lending, renting and selling use different terms. Insurance, payment processing and identity verification are not implemented in this prototype.</div>
+          <div className="market-layout"><aside className="filter-panel"><div className="filters-heading"><Filter size={16}/> {t("Filters")} <button onClick={resetMarketFilters}>{t("Reset")}</button></div><label>{t("TRANSACTION TYPE")}<select value={marketType} onChange={e=>setMarketType(e.target.value)}><option value="all">{t("All types")}</option>{typeOptions.map(([v,l])=><option key={v} value={v}>{t(l)}</option>)}</select></label><label>{t("EQUIPMENT CATEGORY")}<select value={marketCategory} onChange={e=>setMarketCategory(e.target.value)}><option value="all">{t("All categories")}</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>{t("LOCATION")}<input placeholder={t("City or region")} value={marketLocation} onChange={e=>setMarketLocation(e.target.value)}/></label><label>{t("MAX. PRICE (€)")}<input type="number" min="0" placeholder={t("Any price")} value={marketPrice} onChange={e=>setMarketPrice(e.target.value)}/></label><label className="filter-checkbox"><input type="checkbox" checked={marketAvailable} onChange={e=>setMarketAvailable(e.target.checked)}/> {t("Available / flexible now")}</label></aside>
+          <div className="market-results-wrap"><div className="market-results-head"><div><strong>{t("{n} results",{n:marketplace.length})}</strong><span>{t(marketIntro)}</span></div></div>
+          {marketplace.length===0?<div className="empty-state"><h3>{t("No matching results")}</h3><p>{t("Try removing a filter or post an equipment request.")}</p><button className="secondary-button" onClick={()=>{resetMarketFilters();setMarketTab("all");}}>{t("Clear filters")}</button></div>
+          :marketView==="cards"?<div className="exchange-grid">{marketplace.map(m=>{const want=m.direction==="request";const who=m.person||(m.mine?t("You"):t("Someone"));const terms=want?t("Open to offers"):m.type==="sell"?"€"+m.price:m.type==="rent"?"€"+m.price+"/"+t("day"):t("Free");return <article className={"exchange-card"+(want?" want":"")} key={m.id}>
+            <div className="xc-head"><span className="xc-avatar">{(who||"?").trim().charAt(0).toUpperCase()}</span><div className="xc-who"><strong>{who}</strong><span><MapPin size={12}/> {m.location||t("Location not set")}</span></div><span className="xc-badge">{want?t("Looking for"):t("Offering")}</span></div>
+            <h3 className="xc-title">{m.title}</h3>
+            <p className="xc-meta">{catName(m.category)} · {t(marketLabel(m))}{m.note?" · "+m.note:""}{m.isSample?<em className="sample-tag">SAMPLE</em>:null}</p>
+            <div className="xc-foot"><span className="xc-terms">{terms}</span><button className="xc-action" onClick={()=>m.isSample?notify(t("This is illustrative sample data, not an active public request or offer.")):m.mine?notify(t("This draft exists only in this browser until the backend is connected.")):notify(t("Messaging is not connected yet."))}>{want?t("I can help"):t("Message")} <ArrowUpRight size={15}/></button></div>
+          </article>;})}</div>
+          :<div className={"market-results"+(marketTab==="request"?" is-requests":"")}><div className="market-header"><span>{t("EQUIPMENT / REQUEST")}</span><span>{t("TYPE")}</span><span>{t("LOCATION")}</span><span>{t("TERMS")}</span></div>{marketplace.map(m=><div className="market-row" key={m.id}><div className="market-name"><span className={"market-type-icon "+(m.direction==="request"?"wanted":"")}><Package size={19}/></span><div><strong>{m.title}</strong><span>{catName(m.category)} · {m.person?m.person:m.source==="network"?t("Network preview"):m.mine?t("Your draft"):"JenLow Tools"}{m.isSample?<em className="sample-tag">SAMPLE</em>:null}</span></div></div><div><span className={"market-label "+(m.direction==="request"?"wanted":"")}>{t(marketLabel(m))}</span></div><span className="market-city"><MapPin size={13}/>{m.location}</span><div className="market-end"><strong>{m.direction==="request"?<span className="terms-open">{t("Open to offers")}</span>:m.type==="sell"?"€"+m.price:m.type==="rent"?"€"+m.price+"/"+t("day"):t("Free")}</strong><button className="market-open" aria-label={t("Open")+" "+m.title} onClick={()=>m.isSample?notify(t("This is illustrative sample data, not an active public request or offer.")):m.mine?notify(t("This draft exists only in this browser until the backend is connected.")):notify(t("Messaging is not connected yet."))}><ArrowUpRight size={17}/></button></div></div>)}</div>}
+          </div></div>
+          <div className="market-cta"><div><strong>{marketTab==="request"?t("Can you help with one of these?"):marketTab==="offer"?t("Looking for something that is not listed?"):t("Not finding what you need?")}</strong><span>{marketTab==="request"?t("Offer a piece of equipment you do not use right now."):t("Post a request and let people with the right gear find you.")}</span></div><div className="market-cta-actions"><button className="secondary-button" onClick={()=>openOffer()}>{t("Offer equipment")}</button><button className="primary-button" onClick={()=>{setRequestForm({title:"",category:"microphones",location:"",type:"borrow"});setModal({type:"request"});}}>{t("Post a request")}</button></div></div>
+          <div className="market-footnote"><ShieldCheck size={17}/> {t("Lending, renting and selling use different terms. Insurance, payment processing and identity verification are not implemented in this prototype.")}</div>
         </div>}
 
         {page==="tools"&&<ToolsPage notify={notify}/>}
@@ -440,12 +457,12 @@ function App() {
       <div className="pd-media">{detail.image?<img src={detail.image} alt={detail.brand+" "+detail.model}/>:<ProductArt/>}{detail.imageCredit&&<span className="pd-credit">© {detail.imageCredit}</span>}</div>
       <div className="pd-body">
         <p className="pd-desc">{detail.description}</p>
-        {detail.usage&&<p className="pd-usage"><strong>Typical use. </strong>{detail.usage}</p>}
-        {detail.strengths?.length>0&&<div className="pd-points"><span className="overline">STRENGTHS</span><ul>{detail.strengths.map(s=><li key={s}>{s}</li>)}</ul></div>}
-        {detail.limitations?.length>0&&<div className="pd-points pd-limits"><span className="overline">LIMITATIONS</span><ul>{detail.limitations.map(s=><li key={s}>{s}</li>)}</ul></div>}
+        {detail.usage&&<p className="pd-usage"><strong>{t("Typical use.")} </strong>{detail.usage}</p>}
+        {detail.strengths?.length>0&&<div className="pd-points"><span className="overline">{t("STRENGTHS")}</span><ul>{detail.strengths.map(s=><li key={s}>{s}</li>)}</ul></div>}
+        {detail.limitations?.length>0&&<div className="pd-points pd-limits"><span className="overline">{t("LIMITATIONS")}</span><ul>{detail.limitations.map(s=><li key={s}>{s}</li>)}</ul></div>}
         {detail.specs&&Object.keys(detail.specs).length>0&&<div className="pd-specs">{Object.entries(detail.specs).map(([k,v])=><div key={k}><span>{k}</span><strong>{v}</strong></div>)}</div>}
-        {detail.sources?.length>0&&<div className="pd-sources"><span className="overline">SOURCES</span><div>{detail.sources.map(s=><a key={s.url} href={s.url} target="_blank" rel="noreferrer">{s.label} ↗</a>)}</div></div>}
-        <div className="form-actions"><button type="button" className="secondary-button" onClick={()=>toggleWish(detail.id)}><Heart size={16} fill={store.wishlist.includes(detail.id)?"currentColor":"none"}/> {store.wishlist.includes(detail.id)?"Saved":"Save"}</button><button type="button" className="primary-button" onClick={()=>openAdd(detail)}><Plus size={16}/> Add to my studio</button></div>
+        {detail.sources?.length>0&&<div className="pd-sources"><span className="overline">{t("SOURCES")}</span><div>{detail.sources.map(s=><a key={s.url} href={s.url} target="_blank" rel="noreferrer">{s.label} ↗</a>)}</div></div>}
+        <div className="form-actions"><button type="button" className="secondary-button" onClick={()=>toggleWish(detail.id)}><Heart size={16} fill={store.wishlist.includes(detail.id)?"currentColor":"none"}/> {store.wishlist.includes(detail.id)?t("Saved"):t("Save")}</button><button type="button" className="primary-button" onClick={()=>openAdd(detail)}><Plus size={16}/> {t("Add to my studio")}</button></div>
       </div></div></Modal>}
     {modal?.type==="location"&&<Modal title={modal.rename?"Rename location":"New location"} subtitle={modal.rename?"Equipment in this location moves with the new name.":"A shelf, cupboard, rack or another storage space in "+studio.name+"."} onClose={()=>setModal(null)}><form onSubmit={saveLocation} className="form-grid"><label className="full">Location name<input autoFocus name="locationName" required defaultValue={modal.rename||""} placeholder="e.g. Guitar wall, Flight cases, Living room"/></label><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit">{modal.rename?"Save name":"Add location"}</button></div></form></Modal>}
     {modal?.type==="studio"&&<Modal title={modal.rename?"Rename studio":"New studio"} subtitle={modal.rename?"This is the title of your studio page.":"A separate space with its own rooms and equipment, such as a second home studio or a rehearsal room."} onClose={()=>setModal(null)}><form onSubmit={saveStudio} className="form-grid"><label className="full">Studio name<input autoFocus name="studioName" required defaultValue={modal.rename?studio.name:"Studio "+(studios.length+1)} placeholder="e.g. Studio 2, Rehearsal room"/></label><div className="form-actions full"><button type="button" className="secondary-button" onClick={()=>setModal(null)}>Cancel</button><button className="primary-button" type="submit">{modal.rename?"Save name":"Create studio"}</button></div></form></Modal>}

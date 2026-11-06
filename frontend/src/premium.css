@@ -524,3 +524,38 @@ h1,h2,h3{letter-spacing:-.047em}
  .product-detail{grid-template-columns:1fr}
  .pd-media img{aspect-ratio:1.4}
 }
+
+/* ---- Language switcher ---- */
+.lang-select{display:inline-flex;align-items:center;gap:5px;color:#5c6b75;padding:0 2px}
+.lang-select select{border:0;background:transparent;font-size:12px;font-weight:650;color:#38454d;padding:4px 2px;cursor:pointer}
+.lang-select select:focus{outline:none}
+
+/* ---- Gear Exchange: human cards + view toggle ---- */
+.market-toolbar-right{display:flex;align-items:center;gap:16px}
+.view-toggle{display:inline-flex;border:1px solid #dce2e6}
+.view-toggle button{display:grid;place-items:center;width:34px;height:34px;border:0;background:#fff;color:#8c99a2}
+.view-toggle button+button{border-left:1px solid #dce2e6}
+.view-toggle button.on{background:#eef4f8;color:#1d4f75}
+.market-results-wrap{min-width:0}
+.exchange-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:4px}
+.exchange-card{border:1px solid #e6eaec;padding:20px 20px 16px;display:flex;flex-direction:column;gap:12px;background:#fff;transition:border-color .15s,box-shadow .15s}
+.exchange-card:hover{border-color:#cdd8df;box-shadow:0 6px 24px #1731460d}
+.exchange-card.want{background:linear-gradient(180deg,#f7fafc,#fff)}
+.xc-head{display:flex;align-items:center;gap:11px}
+.xc-avatar{width:40px;height:40px;flex:0 0 40px;border-radius:50%;display:grid;place-items:center;background:#e8eef3;color:#2d6490;font-weight:750;font-size:16px}
+.exchange-card.want .xc-avatar{background:#e7f0f6;color:#2f6c9a}
+.xc-who{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.xc-who strong{font-size:14px;color:#1e292f}
+.xc-who span{display:flex;align-items:center;gap:4px;font-size:12px;color:#8c969c}
+.xc-badge{font-size:10px;font-weight:750;letter-spacing:.6px;text-transform:uppercase;color:#6d8497;border:1px solid #d7e0e6;padding:4px 8px;white-space:nowrap}
+.exchange-card.want .xc-badge{color:#2f6c9a;border-color:#bcd5e6;background:#eef5f9}
+.xc-title{font:650 17px/1.3 Manrope,sans-serif;letter-spacing:-.03em;color:#1b262c;margin:2px 0 0}
+.xc-meta{font-size:12.5px;color:#7a858c;margin:0;line-height:1.5}
+.xc-meta .sample-tag{margin-left:6px}
+.xc-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:6px}
+.xc-terms{font-size:15px;font-weight:700;color:#24303a}
+.exchange-card.want .xc-terms{font-size:13px;font-weight:600;color:#8a969e}
+.xc-action{display:inline-flex;align-items:center;gap:7px;border:1px solid #d9e4ec;background:#fff;color:#2f6c9a;font-size:12px;font-weight:700;padding:9px 13px}
+.xc-action:hover{background:#eef4f8;border-color:#b5d2e8}
+@media(max-width:900px){.exchange-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.market-toolbar-right{width:100%;justify-content:space-between}}
