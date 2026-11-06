@@ -1,8 +1,24 @@
 {
+  // JenLow Tools — Worker + static assets.
+  // The Worker (worker/index.js) serves /api/* from D1 and falls through to
+  // the built SPA in ./dist for everything else.
   "name": "tools",
   "compatibility_date": "2025-11-05",
+  "main": "worker/index.js",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   }
+
+  // ---- Cloudflare D1 ----
+  // Until this is set, /api/* returns 503 and the app uses its bundled seed data.
+  // 1) wrangler d1 create jenlow-tools   (copy the database_id it prints)
+  // 2) uncomment the block below and paste the id
+  // 3) wrangler d1 migrations apply jenlow-tools --remote
+  //    (this runs migrations/0001_init.sql then migrations/0002_seed.sql)
+  //
+  // "d1_databases": [
+  //   { "binding": "DB", "database_name": "jenlow-tools", "database_id": "PASTE-DATABASE-ID-HERE" }
+  // ]
 }

@@ -8,7 +8,12 @@ minimal cards and borders, and a professional equipment inventory.
 ("Tools" is the working name for the tools section; Gear Exchange is also a working name.)
 Equipment and News have full-height heroes; Gear Exchange and Tools use a shorter one so the
 content starts sooner. My Studio's hero is the entrance to a studio; its workspace opens on click.
-The 2D example room and all product catalogue content are illustrative prototypes.
+
+The catalogue, news and tools are **real content** (compiled from manufacturer and press
+sources, in French): 64 products with photos, specs and sources; independent reviews,
+release notes and events. It is bundled as `src/seed.json` and, when the Cloudflare
+backend is connected, loaded live from D1 instead (see `SETUP.md`). The 2D studio room is
+still an illustration, and the Gear Exchange marketplace entries are still samples.
 
 ## Start
 
@@ -28,11 +33,13 @@ Build check:
 - Individual equipment records, including distinct records for multiple identical microphones.
 - Add, find (name, brand, category, location, serial), relocate, update and remove equipment;
   add and rename locations; export a CSV inventory. Equipment may be left without a location.
-- **Equipment:** hero search and category shortcuts, one catalogue with category filter,
-  saved view and an early "Fits my setup" filter (it only shows categories you don't own yet;
-  real compatibility checks are not built), plus an elementary comparison.
-- **News:** a carousel on top (latest review, release alert, upcoming event), then reviews (with a translation / show-original toggle, interface idea only), new
-  release alerts and upcoming events. All sample content.
+- **Equipment:** hero search and category shortcuts, the real catalogue (64 products with
+  photos) with category filter, a product detail panel (specs, strengths, limitations,
+  sources), a saved view, an early "Fits my setup" filter (it only shows categories you
+  don't own yet; real compatibility checks are not built), and a side-by-side spec compare.
+- **News:** a carousel on top (latest review, release, event), then real reviews, news,
+  release notes and events, each linking to its source. Translation into the reader's
+  language is planned (the content is currently French).
 - **Gear Exchange:** All / Offers / Requests with filters and quick search; requests show what
   they want (borrow, rent, buy); sample entries are tagged SAMPLE.
 - Sell/rent/lend offer drafts from an owned item, or from Gear Exchange for gear not yet
@@ -41,15 +48,23 @@ Build check:
   Nothing there is built.
 - Local equipment request drafts.
 
+## Backend
+
+A Cloudflare Worker (`worker/index.js`) serves a JSON API (`/api/*`) from a D1 database and
+falls through to the static SPA. The schema (`migrations/0001_init.sql`) includes a generic
+`metadata` table plus catalogue, editorial, tools and marketplace tables; **only metadata is
+stored — media stays as static files.** The database is optional: until it is created, `/api`
+returns `503` and the app uses the bundled seed. Full steps are in `SETUP.md`.
+
 ## Limitations
 
-Frontend-only, with localStorage in the browser. **No backend, no public listings, no actual
-Network requests, no bookings, insurance, payments, identity verification, notifications
-or multi-device synchronization.** Sample marketplace entries and sample news are explicitly
-fictional. Current product data and comparisons are illustrative rather than verified.
-The virtual studio room is an SVG illustration; no custom photo, 3D engine or real
-acoustic simulation is involved. The Equipment and My Studio heroes and the onboarding panel use third-party photos; the News, Gear Exchange and Tools heroes are plain gradients. The photos use third-party
-photographic backgrounds that require an internet connection and are design placeholders.
+Personal studio inventory still lives in the browser (localStorage); there is no login yet,
+so the `studios`/`items` tables are unused until auth is added. **No bookings, insurance,
+payments, identity verification, notifications or multi-device sync for personal data.**
+Gear Exchange marketplace entries are sample content (tagged SAMPLE). The virtual studio
+room is an SVG illustration; no custom photo, 3D engine or acoustic simulation is involved.
+The My Studio hero and onboarding panel use third-party photographic backgrounds that
+require an internet connection and are design placeholders.
 The first four locations of a studio occupy the four hotspots of the sample room (even if renamed);
 additional locations appear in the list and chips but not on the illustration.
 

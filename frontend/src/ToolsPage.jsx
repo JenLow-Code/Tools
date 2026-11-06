@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Info, Lock, Music, QrCode, Scissors, Smartphone } from "lucide-react";
 import PageHero from "./PageHero.jsx";
-import { labTools } from "./data.js";
+import { tools as seedTools } from "./data.js";
+import { fetchTools } from "./api.js";
 
 const ICONS = {phone: Smartphone, split: Scissors, music: Music, qr: QrCode};
 
 export default function ToolsPage({notify}) {
+  const [labTools, setLabTools] = useState(seedTools);
+  useEffect(() => { fetchTools().then((d) => { if (Array.isArray(d) && d.length) setLabTools(d); }); }, []);
   return <div className="page-tools">
     <PageHero
       kicker="MEMBERSHIP · PLANNED" title="One membership," accent="all the tools."
