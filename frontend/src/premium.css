@@ -1,7 +1,7 @@
 /* JenLow Tools — R'HiFi-inspired art direction.
    Premium audio, architectural restraint, wide compositions, minimal chrome.
    Functional inventory and market components remain intact. */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;600;650;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=DM+Sans:wght@400;450;500;600;650;700;800&family=Manrope:wght@400;500;600;700;800&family=Michroma&display=swap');
 :root{--blue:#497fa8;--navy:#081827;--muted:#727c85;--line:#e8e9e9;--surface:#fff;--round:4px;color:#171b1e;background:#fff}
 html{scroll-behavior:smooth}
 body{background:#fff;color:#171b1e}
@@ -10,9 +10,14 @@ h1,h2,h3{letter-spacing:-.047em}
 .app-shell{display:block;min-height:100vh}
 .app-main{width:100%;min-width:0}
 .topbar{position:sticky;top:0;z-index:40;height:72px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;padding:0 clamp(26px,4vw,82px);background:#fffefcf0;border-bottom:1px solid #eeeeeb;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.premium-logo{display:flex;align-items:baseline;gap:6px;width:max-content;color:#101519;font-family:Manrope,Arial,sans-serif;font-size:24px;font-weight:800;letter-spacing:-1.6px;text-decoration:none}
-.premium-logo>b{font-weight:700;color:#285a83;font-size:18px;letter-spacing:-.95px}
-.logo-stop{color:#3c8abc}
+/* ---- Official JenLow Tools brand lock-up (wave mark + Michroma / Caveat) ---- */
+.jl-brand{display:flex;align-items:center;gap:10px;width:max-content;text-decoration:none;line-height:1}
+.jl-wave{width:32px;height:38px;flex-shrink:0;overflow:visible}
+.jl-wordmark{display:flex;flex-direction:column;align-items:center;line-height:.82}
+.jl-word{font-family:Michroma,Arial,sans-serif;font-weight:400;font-size:15px;letter-spacing:.02em;color:#101519}
+.jl-tools{font-family:Caveat,'Segoe Print',cursive;font-weight:600;font-size:25px;letter-spacing:.06em;transform:rotate(-5deg);color:#1d73b8;margin-top:-1px}
+.jl-brand-dark .jl-word{color:#fff}
+.jl-brand-dark .jl-tools{color:#d8efff}
 .premium-nav{display:flex;align-items:stretch;justify-content:center;gap:38px;height:100%}
 .premium-nav button{border:0;background:transparent;color:#747b80;white-space:nowrap;font-size:12px;font-weight:650;padding:0 2px;letter-spacing:.1px;border-bottom:2px solid transparent}
 .premium-nav button:hover{color:#11181d}
@@ -123,7 +128,9 @@ h1,h2,h3{letter-spacing:-.047em}
 .welcome-layer{background:#07131de3;backdrop-filter:blur(7px)}
 .welcome-card{grid-template-columns:48% 52%;width:min(1200px,96vw);border-radius:0;min-height:680px;box-shadow:0 30px 100px #020a16a0}
 .welcome-visual{padding:47px 50px;background:linear-gradient(0deg,#06121bdb,#06121b88),url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1100&q=84') center / cover,#132737}
-.welcome-brand{font-size:23px}
+.welcome-brand .jl-wave{width:34px;height:40px}
+.welcome-brand .jl-word{font-size:17px}
+.welcome-brand .jl-tools{font-size:28px}
 .welcome-copy{margin-top:85px}
 .welcome-copy h1{font:700 clamp(31px,3.4vw,51px)/1.16 Manrope,sans-serif;letter-spacing:-.075em}
 .welcome-copy h1 em{color:#cadfe9}
@@ -314,7 +321,9 @@ h1,h2,h3{letter-spacing:-.047em}
 }
 @media(max-width:800px){
  .topbar{padding:0 20px;grid-template-columns:1fr auto}
- .premium-logo{font-size:22px}
+ .jl-brand .jl-wave{width:28px;height:34px}
+ .jl-brand .jl-word{font-size:13px}
+ .jl-brand .jl-tools{font-size:22px}
  .premium-nav{grid-column:1/-1;grid-row:2;justify-content:flex-start;height:43px;gap:22px;min-width:0;overflow-x:auto;scrollbar-width:none}
  .premium-nav::-webkit-scrollbar{display:none}
  .premium-nav button{font-size:12px}
@@ -447,7 +456,6 @@ h1,h2,h3{letter-spacing:-.047em}
 .tools-intro{margin:6px 0 30px}
 .tools-intro h2{font:700 clamp(24px,2.6vw,34px) Manrope,sans-serif;letter-spacing:-.055em;color:#181e22;margin:0 0 8px}
 .tools-intro p{font-size:14px;color:#6f7a82;margin:0}
-.brand-mark-img{height:27px;width:auto;vertical-align:middle;margin-right:8px}
 
 @media(max-width:900px){
  .studio-chapters{position:static;transform:none;width:auto;flex-direction:row;align-items:stretch;overflow-x:auto;border-left:0;border-top:1px solid #ffffff40;padding:6px 0 0;margin:20px 0 22px;background:transparent;backdrop-filter:none}

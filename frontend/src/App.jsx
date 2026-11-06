@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Bell, Check, CheckCircle2,
   ChevronRight, Download, Filter, GitCompareArrows, Heart, Home, Info, Layers3,
@@ -10,6 +10,18 @@ import NewsPage from "./NewsPage.jsx";
 import ToolsPage from "./ToolsPage.jsx";
 import { demoMarket, otherStudios, products } from "./data.js";
 import "./styles.css";
+
+// Official JenLow Tools mark (from the brand source): a cyan→blue equaliser
+// on a transparent background. Unique gradient id per instance.
+function JlWave({className = "jl-wave"}) {
+  const gid = "wave" + useId().replace(/[^a-zA-Z0-9]/g, "");
+  return (
+    <svg className={className} viewBox="0 0 120 120" aria-hidden="true">
+      <defs><linearGradient id={gid} x2=".3" y2="1"><stop stopColor="#00e9ed"/><stop offset="1" stopColor="#003bff"/></linearGradient></defs>
+      <g fill="none" stroke={`url(#${gid})`} strokeWidth="11" strokeLinecap="round"><path d="M8 73v12m18-29v38m19-68v82m18-64v13m20-70v78m19-30v25m18-15v13"/></g>
+    </svg>
+  );
+}
 
 const KEY = "jenlow-tools-front-v1";
 const DEFAULT_LOCATIONS = ["Desk", "Rack", "Storage", "Cellar"];
@@ -133,7 +145,7 @@ function Onboarding({state,onComplete,onAdd}) {
   const finish=()=>onComplete({purpose,daw,studioName:name.trim() || "My Home Studio"});
   return <div className="welcome-layer"><div className="welcome-card">
     <div className="welcome-visual">
-      <div className="welcome-brand"><img className="brand-mark-img" src="/jenlow-mark.png" alt="" width="30" height="27"/> jenlow<span>tools.</span></div>
+      <div className="welcome-brand jl-brand jl-brand-dark"><JlWave/><span className="jl-wordmark"><span className="jl-word">JENLOW</span><span className="jl-tools">TOOLS</span></span></div>
       <div className="welcome-copy"><span className="overline pale">WELCOME TO YOUR WORKSPACE</span><h1>Your equipment.<br/>Your space.<br/><em>Under control.</em></h1><p>Start with a simple studio. Make it yours as you go.</p></div>
       <div className="welcome-orbit"><div className="orbit-screen"/><div className="orbit-speaker a"/><div className="orbit-speaker b"/><div className="orbit-table"/></div>
       <div className="welcome-foot">DESKTOP-FIRST · PRIVATE BY DEFAULT</div>
@@ -270,7 +282,7 @@ function App() {
   return <div className="app-shell">
     <div className="app-main">
       <header className="topbar">
-        <a className="premium-logo" href="#" onClick={e=>{e.preventDefault();setPage("studio");setStudioOpen(false);}} aria-label="JenLow Tools Home"><span>jenlow</span><b>tools<span className="logo-stop">.</span></b></a>
+        <a className="premium-logo jl-brand" href="#" onClick={e=>{e.preventDefault();setPage("studio");setStudioOpen(false);}} aria-label="JenLow Tools Home"><JlWave/><span className="jl-wordmark"><span className="jl-word">JENLOW</span><span className="jl-tools">TOOLS</span></span></a>
         <nav className="premium-nav" aria-label="Tools navigation">
           {NAV.map(n=><button type="button" key={n.key} className={page===n.key?"is-active":""} onClick={()=>{setPage(n.key);if(n.key==="studio")setStudioOpen(false);}}>{n.label}</button>)}
         </nav>
