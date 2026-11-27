@@ -1,0 +1,38 @@
+name: Tools production acceptance smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/tools-live-smoke.yml']
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Confirm served Core client and fail-closed public writes
+        run: |
+          python - <<'PY'
+          import json,subprocess,re,time
+          from urllib.parse import urljoin,urlparse
+          base='https://tools.jenlow-production.workers.dev'
+          def get(url):
+            return subprocess.check_output(['curl','-fsS','--max-time','20',url]).decode()
+          for attempt in range(18):
+            try:
+              html=get(base+'/')
+              srcs=re.findall(r'<script[^>]+src="([^"]+)"',html)
+              js=''.join(get(urljoin(base+'/',src)) for src in srcs if urlparse(urljoin(base+'/',src)).netloc==urlparse(base).netloc)
+              assert 'api-tools.jenlow.net' in js and 'jenlow-tools-auth-v1' in js
+              for kind in ['offers','requests']:
+                code=int(subprocess.check_output(['curl','-sS','--max-time','20','-o','/tmp/tools-response','-w','%{http_code}','-X','POST','-H','Content-Type: application/json','--data','{}',base+'/api/market/'+kind]))
+                assert code==503,code
+                assert json.load(open('/tmp/tools-response'))['error']=='market_publication_not_available'
+              print('Verified deployed Core account client and disabled unauthenticated writes.')
+              break
+            except Exception as e:
+              print('Attempt',attempt+1,type(e).__name__)
+              if attempt==17: raise
+              time.sleep(10)
+          PY
