@@ -24,4 +24,16 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - run: node --test test/identity.test.js
       - run: npm run build
+      - name: Record npm lockfile for reproducible release
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const bytes=fs.readFileSync('package-lock.json');
+          console.log('LOCK_SHA256 '+crypto.createHash('sha256').update(bytes).digest('hex'));
+          const b64=bytes.toString('base64');
+          for(let i=0;i<b64.length;i+=3000)console.log('LOCK_B64 '+b64.slice(i,i+3000));
+          JS
+
