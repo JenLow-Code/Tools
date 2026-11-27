@@ -1,0 +1,28 @@
+name: Tools Core gateway validation
+on:
+  push:
+    paths: ['api/tools/**','core.lock.json','.github/workflows/tools-security.yml']
+  pull_request:
+    paths: ['api/tools/**','core.lock.json','.github/workflows/tools-security.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --experimental-strip-types --test api/tools/test/gateway.test.ts
+      - run: npx --yes esbuild@0.28.2 api/tools/src/index.ts --bundle --format=esm --platform=neutral --outfile=/tmp/tools-gateway.js --log-level=warning
+      - name: Record verified gateway bundle
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const bytes=fs.readFileSync('/tmp/tools-gateway.js');
+          console.log('TOOLS_BUNDLE_SHA256 '+crypto.createHash('sha256').update(bytes).digest('hex'));
+          console.log('TOOLS_BUNDLE '+bytes.toString('base64'));
+          JS

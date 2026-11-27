@@ -1,0 +1,12 @@
+name = "api-tools"
+main = "src/index.ts"
+compatibility_date = "2026-10-25"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+preview_urls = false
+[vars]
+ALLOWED_ORIGIN = "https://tools.jenlow-production.workers.dev,https://tools.jenlow.net"
+[[services]]
+binding = "SECURITY"
+service = "jenlow-security"
+entrypoint = "ToolsSecurity"
