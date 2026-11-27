@@ -105,23 +105,10 @@ async function api(request, env, url) {
     return json(await all(db, "listings", sql, dir ? [dir] : []));
   }
 
-  if ((p === "/api/market/offers" || p === "/api/market/requests") && method === "POST") {
-    const direction = p.endsWith("offers") ? "offer" : "request";
-    let body;
-    try { body = await request.json(); } catch { return err("Invalid JSON body", 400); }
-    if (!body || !body.title) return err("A title is required", 400);
-    const id = (direction === "offer" ? "off-" : "req-") + Date.now().toString(36);
-    await db.prepare(
-      `INSERT INTO listings (id, account_id, person_name, direction, title, category, product_id, type, price, location, availability, note, source, is_sample)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?, 'tools', 0)`
-    ).bind(
-      id, body.accountId ?? null, body.personName ?? null, direction, body.title,
-      body.category ?? null, body.productId ?? null, body.type ?? null,
-      body.price ?? null, body.location ?? null, body.availability ?? null, body.note ?? null
-    ).run();
-    const rows = await all(db, "listings", "SELECT * FROM listings WHERE id = ?", [id]);
-    return json(rows[0], 201);
-  }
+  // Phase B must approve account ownership, schema and resource authorization first.
+  // Local drafts remain available; never trust a submitted account_id or publish anonymously.
+  if ((p === "/api/market/offers" || p === "/api/market/requests") && method === "POST")
+    return err("market_publication_not_available", 503);
 
   return err("Unknown API route", 404);
 }
